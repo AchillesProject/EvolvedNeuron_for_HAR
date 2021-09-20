@@ -1,2 +1,2 @@
 # MasterProject
-Automation Learning (learn how to learn)
+Under the supervision of Prof. Roland Olsson
