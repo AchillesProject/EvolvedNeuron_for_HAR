@@ -1,2 +1,2 @@
 # MasterProject
-under the supervision of Prof. Roland Olsson
+Under the supervision of Prof. Roland Olsson
