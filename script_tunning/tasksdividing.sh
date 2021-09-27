@@ -14,8 +14,8 @@ for file in ../Version9.128timesteps/*; do
 done
 
 starttime_date=`date`;
-starttime_second=`data +%s`;
-echo "Starting Hyperparameter Tunning with ${#files_array[@]} total file at $starttime_date ($starttime_second).";
+starttime_second=`date +%s`;
+echo "Starting Hyperparameter Tunning with ${#files_array[@]} total file on $starttime_date ($starttime_second).";
 
 for file in "${files_array[@]}";
 do
@@ -35,7 +35,7 @@ do
             while :
             do
                 cpu=${cpus_array[$cpu_index]};
-                cpu_str="Cpu$cpu"
+                cpu_str="Cpu$((cpu + 1))"
                 if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
                     cpu_index=0;
                 else
@@ -62,7 +62,7 @@ do
                     #`taskset -c "$cpu" ./whileloop.sh &>/dev/null &!`;
                     #`taskset -c "$cpu"  python ./Hyperband_1Datasets.py mse "$file"&>/dev/null &!`;
                     `taskset -c "$cpu"  python ./Hyperband_1Datasets.py mse "$file" &>"$log_dir" &!`;
-                    echo "Assigning $(($cpu_str+1)) to file number $filename";
+                    echo "Assigning $cpu_str to file number $filename";
                     flag=1;
                     break
                 fi
@@ -73,5 +73,5 @@ do
 done
 
 endtime_date=`date`;
-endtime_second=`data +%s`;
-echo "Finish Hyperparameter Tunning with ${#files_array[@]} total file at $endtime_date ($endtime_second) in $(($endtime_second - $starttime_second)).";
+endtime_second=`date +%s`;
+echo "Finish Hyperparameter Tunning with ${#files_array[@]} total file on $endtime_date ($endtime_second) in $(($endtime_second - $starttime_second)).";
