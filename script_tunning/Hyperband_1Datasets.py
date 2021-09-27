@@ -159,8 +159,8 @@ def main(datasetpath, lossmethod):
                      **{'tuned_score': round(lstm_tuner_v1.oracle.get_best_trials(1)[0].score, 5)},
                      **{'loss': round(val_performance[0],5)},
                      **{'binary_accuracy': round(val_performance[1],5)},
-                     **{'precision': round(val_performance[2],5)},
-                     **{'recall': round(val_performance[3],5)},
+#                      **{'precision': round(val_performance[2],5)},
+#                      **{'recall': round(val_performance[3],5)},
                      **{'training_time (ms)': round(timedelta.total_seconds(),5)},
                     }
     [tuning_result.pop(key, None) for key in ['tuner/initial_epoch', 'tuner/bracket', 'tuner/round']]
