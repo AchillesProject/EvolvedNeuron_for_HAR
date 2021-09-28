@@ -93,7 +93,7 @@ def main(datasetpath, lossmethod):
     timestep = datasetpath.split('.')[7].split('s')[1]
     version = datasetpath.split('.')[8].split('n')[1]
     dataset  = datasetpath.split('.')[-2]
-    filename = "{}_{}_{}_{}_{}".format(ni, no, mc, timestep, version, dataset)
+    filename = "{}_{}_{}_{}_{}_{}".format(ni, no, mc, timestep, version, dataset)
 
     print('Dataset: ', filename)
 
