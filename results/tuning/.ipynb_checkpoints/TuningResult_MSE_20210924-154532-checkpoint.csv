@@ -1,2 +1,0 @@
-project,log_dir,dataset_no,objectives,af_LSTM,raf_LSTM,af_dense,optimizer,learning_rate,thresholds_BA,tuner/epochs,tuned_score,loss,binary_accuracy,precision,recall,training_time (ms)
-MasterProject,logs/tuner/MasterProject,6,"val_binary_accuracy, max",relu,sigmoid,sigmoid,adam,0.01,0.6,3,0.85686,0.44677,0.55323,0.4983,0.4475,240.51605

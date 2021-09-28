@@ -87,8 +87,15 @@ def main(datasetpath, lossmethod):
     val_performance, train_time, training_history = {}, {}, {}
     # Getting data from csv file
     filepath = os.path.join(datasetpath)
+    ni = datasetpath.split('.')[4].split('=')[1]
+    no = datasetpath.split('.')[5].split('=')[1]
+    mc = datasetpath.split('.')[6].split('=')[1]
+    timestep = datasetpath.split('.')[7].split('s')[1]
+    version = datasetpath.split('.')[8].split('n')[1]
     dataset  = datasetpath.split('.')[-2]
-    print('dataset no.: ', dataset)
+    filename = "{}_{}_{}_{}_{}".format(ni, no, mc, timestep, version, dataset)
+
+    print('Dataset: ', filename)
 
     with open(filepath, "r") as fp:
         [noInput, noOutput] = [int(x) for x in fp.readline().split(',')]
@@ -106,8 +113,8 @@ def main(datasetpath, lossmethod):
     print("+ Validating set: ", x_val.shape, y_val.shape, x_val.dtype)
     
     print('Step 3: Tuning....')
-    log_dir_hparams = "../logs//hparams//" + dataset + "//" + lossmethod + "//" + snapshot
-    log_dir_tuner   = "../logs//tuner//"   + dataset + "//" + lossmethod + "//" + snapshot
+    log_dir_hparams = "../logs//hparams//" + filename + "//" + lossmethod + "//"
+    log_dir_tuner   = "../logs//tuner//"   + filename + "//" + lossmethod + "//"
     lstm_tuner_v1=kt.tuners.Hyperband(
         tunner_lstm_model_v1,
         objective=kt.Objective('val_binary_accuracy', direction='max'),
@@ -130,7 +137,7 @@ def main(datasetpath, lossmethod):
                          validation_data=(x_val, y_val),
                          shuffle=True,
                          use_multiprocessing=True,
-                         workers=8,
+                         workers=4,
                          callbacks=[tf.keras.callbacks.EarlyStopping("val_binary_accuracy")]
                         )
     bestparams_v1 = lstm_tuner_v1.get_best_hyperparameters(1)[0]
@@ -153,7 +160,7 @@ def main(datasetpath, lossmethod):
     print('Step 5: Saving result.')
     tuning_result = {**{'project': lstm_tuner_v1.project_name},
                      **{'log_dir': lstm_tuner_v1.project_dir},
-                     **{'dataset_no': dataset},
+                     **{'dataset_no': filename},
                      **{'objectives': '{}, {}'.format(lstm_tuner_v1.oracle.objective.name, lstm_tuner_v1.oracle.objective.direction)},
                      **(lstm_tuner_v1.oracle.get_best_trials(1)[0].hyperparameters.values), 
                      **{'tuned_score': round(lstm_tuner_v1.oracle.get_best_trials(1)[0].score, 5)},
@@ -165,9 +172,8 @@ def main(datasetpath, lossmethod):
                     }
     [tuning_result.pop(key, None) for key in ['tuner/initial_epoch', 'tuner/bracket', 'tuner/round']]
     
-    
-    df = pd.DataFrame.from_dict(tuning_result)
-    df.to_csv('../results/tuning/TuningResult_{}_{}.csv'.format(dataset,lossmethod,snapshot), index=False)
+    df = (pd.DataFrame.from_dict(tuning_result, orient='index', columns=[str(tuning_result['dataset_no'])]))
+    df.to_csv('../results/{}_{}.csv'.format(filename,lossmethod), index=True, index_label='Items')
 
 if __name__=="__main__":
     print("No. of arguments passed is ", len(sys.argv))
@@ -179,3 +185,4 @@ if __name__=="__main__":
     else:
         print("Don't have sufficient arguments.")
     main(datasetpath, lossmethod)
+    print("Complete ", datasetpath)

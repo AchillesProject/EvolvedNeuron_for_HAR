@@ -106,8 +106,8 @@ def main(datasetpath, lossmethod):
     print("+ Validating set: ", x_val.shape, y_val.shape, x_val.dtype)
     
     print('Step 3: Tuning....')
-    log_dir_hparams = "../logs//hparams//" + dataset + "//" + lossmethod + "//" + snapshot
-    log_dir_tuner   = "../logs//tuner//"   + dataset + "//" + lossmethod + "//" + snapshot
+    log_dir_hparams = "../logs//hparams//" + dataset + "//" + lossmethod + "//"
+    log_dir_tuner   = "../logs//tuner//"   + dataset + "//" + lossmethod + "//"
     lstm_tuner_v1=kt.tuners.Hyperband(
         tunner_lstm_model_v1,
         objective=kt.Objective('val_binary_accuracy', direction='max'),
@@ -130,7 +130,7 @@ def main(datasetpath, lossmethod):
                          validation_data=(x_val, y_val),
                          shuffle=True,
                          use_multiprocessing=True,
-                         workers=8,
+                         workers=4,
                          callbacks=[tf.keras.callbacks.EarlyStopping("val_binary_accuracy")]
                         )
     bestparams_v1 = lstm_tuner_v1.get_best_hyperparameters(1)[0]
@@ -165,9 +165,8 @@ def main(datasetpath, lossmethod):
                     }
     [tuning_result.pop(key, None) for key in ['tuner/initial_epoch', 'tuner/bracket', 'tuner/round']]
     
-    
-    df = pd.DataFrame.from_dict(tuning_result)
-    df.to_csv('../results/tuning/TuningResult_{}_{}.csv'.format(dataset,lossmethod,snapshot), index=False)
+    df = (pd.DataFrame.from_dict(tuning_result, orient='index', columns=[str(tuning_result['dataset_no'])]))
+    df.to_csv('../results/tuning/TuningResult_{}_{}.csv'.format(dataset,lossmethod), index=True, index_label='Items')
 
 if __name__=="__main__":
     print("No. of arguments passed is ", len(sys.argv))
@@ -179,3 +178,4 @@ if __name__=="__main__":
     else:
         print("Don't have sufficient arguments.")
     main(datasetpath, lossmethod)
+    print("Complete ", datasetpath)
