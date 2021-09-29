@@ -47,7 +47,7 @@ lstm_raf = ['sigmoid']
 dense_af = ['sigmoid']
 learning_rates = [1e-2, 1e-3, 1e-4]
 thresholds = [0.5, 0.51, 0.6, 0.7]
-lossmethod = 'mse'
+lossmethod = ['mse']
 
 def seperateValues(data, noIn, noOut):
     x_data, y_data = None, None
@@ -76,7 +76,7 @@ def tunner_lstm_model_v1(hp):
     else:
         optimizer = tf.keras.optimizers.SGD(hp.Choice('learning_rate', values=learning_rates))
     model.compile(optimizer=optimizer,
-                  loss=lossmethod,
+                  loss=hp.Choice('lm_LSTM', lossmethod),
                   metrics=[tf.keras.metrics.BinaryAccuracy(threshold=hp.Choice('thresholds_BA', thresholds)),
 #                            tf.keras.metrics.Precision(name='precision'),
 #                            tf.keras.metrics.Recall(name='recall'),
@@ -113,8 +113,8 @@ def main(datasetpath, lossmethod):
     print("+ Validating set: ", x_val.shape, y_val.shape, x_val.dtype)
     
     print('Step 3: Tuning....')
-    log_dir_hparams = "../logs//hparams//" + filename + "//" + lossmethod + "//"
-    log_dir_tuner   = "../logs//tuner//"   + filename + "//" + lossmethod + "//"
+    log_dir_hparams = "../logs//hparams//" + filename + "//" + lossmethod[0] + "//"
+    log_dir_tuner   = "../logs//tuner//"   + filename + "//" + lossmethod[0] + "//"
     lstm_tuner_v1=kt.tuners.Hyperband(
         tunner_lstm_model_v1,
         objective=kt.Objective('val_binary_accuracy', direction='max'),
@@ -173,14 +173,15 @@ def main(datasetpath, lossmethod):
     [tuning_result.pop(key, None) for key in ['tuner/initial_epoch', 'tuner/bracket', 'tuner/round']]
     
     df = (pd.DataFrame.from_dict(tuning_result, orient='index', columns=[str(tuning_result['dataset_no'])]))
-    df.to_csv('../results/{}_{}.csv'.format(filename,lossmethod), index=True, index_label='Items')
+    df.to_csv('../results/{}_{}.csv'.format(filename,lossmethod[0]), index=True, index_label='Items')
 
 if __name__=="__main__":
     print("No. of arguments passed is ", len(sys.argv))
     for idx, arg in enumerate(sys.argv):
         print("Argument #{} is {}".format(idx, arg))
     if len(sys.argv) == 3:
-        lossmethod  = sys.argv[1]
+        lossmethod.pop()
+        lossmethod.append(sys.argv[1])
         datasetpath = sys.argv[2]
     else:
         print("Don't have sufficient arguments.")

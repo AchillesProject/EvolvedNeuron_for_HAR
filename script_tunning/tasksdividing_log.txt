@@ -1,5 +1,0 @@
-Starting Hyperparameter Tunning with 180 total file on Tue Sep 28 22:16:13 CEST 2021 (1632860173).
-Assigning Cpu9 to file number 3_5_15_128_9_0
-Assigning Cpu10 to file number 3_5_15_128_9_1
-Assigning Cpu11 to file number 3_5_15_128_9_10
-Assigning Cpu12 to file number 3_5_15_128_9_11
