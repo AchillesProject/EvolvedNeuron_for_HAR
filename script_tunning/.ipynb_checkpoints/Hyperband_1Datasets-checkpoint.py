@@ -219,16 +219,9 @@ def main(datasetpath, lossmethod):
     curr_time = datetime.datetime.now()
     timedelta = curr_time - strt_time
     
-    val_performance = hyper_model_v1.evaluate(x_val, y_val)
+    val_performance = hyper_model_v1.evaluate(x_val, y_val, batch_size=1, verbose=1)
     
-    y_pred = hyper_model_v1.predict(x_val, verbose=1)
-    count = 0
-    numCorrect = 0
-    for i in range( y_pred.shape[ 0 ] ) :
-        for j in range( y_pred.shape[ 1 ] ) :
-            count += 1
-            if isCorrect( y_val[ i, j ], y_pred[ i, j ] ) :
-                numCorrect += 1
+    y_pred = hyper_model_v1.predict(x_val, verbose=1, batch_size=1)
     
     print('Step 5: Saving result.')
     tuning_result = {**{'project': lstm_tuner_v1.project_name},
@@ -240,8 +233,7 @@ def main(datasetpath, lossmethod):
                      **{'tuned_score': round(lstm_tuner_v1.oracle.get_best_trials(1)[0].score, 5)},
                      **{'loss': round(val_performance[0],5)},
                      **{'val_loss': round(val_performance[1],5)},
-                     **{'customMetricfn': round(val_performance[2],5)},
-                     **{'val_customMetricfn': round(val_performance[3],5)},
+                     **{'val_customMetricfn': round(val_performance[2],5)},
                      **{'pred_accuracy': round(customMetricfn(y_val, y_pred), 5)},
                      **{'training_time (ms)': round(timedelta.total_seconds(),5)},
                     }

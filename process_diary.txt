@@ -1,0 +1,12 @@
+06/10/2021: Exploding that the hyperparameter return NaN when building a LSTM (without earlyStopping)
+- Check if the problem comes from the tensorflow for cpu?
+- Check if the problem comes from the parameters setup
++ Findout that: when the loss explodes and return NaN values, it stops the optimization.
++>Solution: Adding the tf.keras.callbacks.TerminateOnNan()
+++>Result: ./results/mse_07102021 and Log: ./logs/processing/mse_07102021
+++>Change name: ./results/mse_07102021_ES and Log: ./logs/processing/mse_07102021_ES
+++>Re-run with no early stopping: ./result/mse_08102021_noES and Log: ./logs/processing/mse_08102021_noES
+13/10/2021: There still is a gap between the tuned hyperparameters and the default setup.
++>Solution: Writing a custom metric based on professor's code.
++>Addition: To increase the tuning speed, writing a custom callback function to stop the trial if the output accuracy below threshold.
+++>Result: ./results/mse_13102021_ES and Log: ./logs/processing/mse_13102021_noES

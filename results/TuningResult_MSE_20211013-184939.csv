@@ -1,0 +1,2 @@
+project,log_dir,dataset_name,objectives,af_LSTM,raf_LSTM,af_dense,optimizer,learning_rate,tuner/epochs,tuned_score,loss,val_loss,predict_accuracy,training_time (ms)
+MasterProject,../logs//tuner//seqnetdata.ni=3.no=5.mc=7.numTimeSteps128.version9.6.csv//mse//MasterProject,seqnetdata.ni=3.no=5.mc=7.numTimeSteps128.version9.6.csv,"val_myMetricfn, max",tanh,sigmoid,tanh,adam,0.01,8,0.99936,0.02601,0.02601,0.99384,70.99778
