@@ -1,0 +1,21 @@
+Items,mse_3_5_7_128_9_23
+project,MasterProject
+log_dir,../logs//tuner//mse_3_5_7_128_9_23//mse//MasterProject
+dataset_no,mse_3_5_7_128_9_23
+dataset_name,../Version9.128timesteps/seqnetdata.ni=3.no=5.mc=7.numTimeSteps128.version9.23.csv
+objectives,"val_customMetricfn, max"
+af_LSTM,tanh
+raf_LSTM,sigmoid
+af_dense,tanh
+optimizer,adam
+learning_rate,0.01
+tuner/epochs,8
+tuned_score,0.65222
+loss,0.6396
+val_loss,0.6396
+val_customMetricfn,0.6445
+pred_accuracy,0.64449
+training_time (ms),69.86659
+rerun_acc_0,0.618
+rerun_acc_1,0.89886
+rerun_acc_2,0.89898

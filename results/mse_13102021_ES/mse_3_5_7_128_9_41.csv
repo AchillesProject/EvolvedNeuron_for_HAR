@@ -19,3 +19,8 @@ training_time (ms),72.25292
 rerun_acc_0,0.90134
 rerun_acc_1,0.90078
 rerun_acc_2,0.90134
+default_acc_0,0.85604
+default_acc_1,0.88592
+default_acc_2,0.87056
+delta,0.030313
+isbetter,same
