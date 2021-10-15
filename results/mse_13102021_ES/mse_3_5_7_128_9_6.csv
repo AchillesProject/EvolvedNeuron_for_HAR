@@ -23,4 +23,4 @@ default_acc_0,0.95616
 default_acc_1,0.98836
 default_acc_2,0.90752
 delta,0.045173
-isbetter,same
+isbetter,better
