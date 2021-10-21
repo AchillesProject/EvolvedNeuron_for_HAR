@@ -12,7 +12,7 @@ cpus_assigned_array=();
 cpu_index=0;
 lossmethod="mse"
 
-for file in ../results/mse_13102021_ES/*; do
+for file in ../results/mse_20102021_ES_NS/*; do
     files_array+=($file);
 done
 
