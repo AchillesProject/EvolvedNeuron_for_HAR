@@ -1,0 +1,36 @@
+Task 2: Implementing the new RNN network called RNN Plus - log
+
+1-9/11/2021: Researching about how to implement new network with Tensorflow/Keras
+
+10/11/2021: [Notebook] Generating the child network called RNNPlus_v1 by creating a new cell function, called RNN_plus_v1_cell.
++ It is inherrited from the base layer tf.keras.layers.Layer
++ The implementation is saved at ./RNNplus_v1.ipynb
++ The results is saved at ./results/2_rnn_plus/rnn_plus_v1_10112021
++ The logs is saved at ./logs/processing/2_rnn_plus/rnnplus_v1_10112021
+
+15/11/2021: [Script] Run RNNplus_v1 for all 180 small datasets and merge results with the original LSTM
++ Notebook file: ./MergingResults_v1.ipynb
++ Python file: ./bash_scripts/RNNplus_v1_1Datasets.py
++ Results: 
+ ++ For rolled setting: ./results/2_rnn_plus/rnn_plus_v1_15112021_ES_DS_Rolled
+ ++ For unrolled setting: ./results/2_rnn_plus/rnn_plus_v1_15112021_ES_DS_UnRolled
++ Merged Results:
+ ++ For rolled setting: ./results/2_rnn_plus/rnn_plus_v1_15112021_ES_DS_Rolled_merged
+ ++ For rolled setting: ./results/2_rnn_plus/rnn_plus_v1_15112021_ES_DS_UnRolled_merged
+
+--> Problem: The results from the RNN_plus_v1 are not good as the original LSTM or the Prof's result.
+--> Hypothesis: Missing the configuration for optimizing the Adam function compared to the implementation from professors.
+
+25/11/2021: [Notebook] Adding the tf.keras.optimizers.schedules.LearningRateSchedule and changing the other parameters such as beta_1, beta_2, and epsilon.
++ Notebook file: ./RNNplus_v1_1.ipynb
++ Results:
++ Merged Results:
+
+-- Complete Task 2 with best result logs in: ----------------------------------
++ log: 
+ ++> ./logs/processing/...
+ ++> ./logs/processing/...
++ result:
+ ++> ./results/1_tuning/...
+ ++> ./results/1_tuning/...
+ -------------------------------------------------------------------------------
