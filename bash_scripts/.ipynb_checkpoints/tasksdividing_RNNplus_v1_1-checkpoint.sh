@@ -11,9 +11,9 @@ cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
 
-pythonscript="./RNNplus_v1_1_1Datasets.py";
+pythonscript="./RNNplus_v1_4_1Datasets.py";
 
-for file in ../Version9.128timesteps/*; do
+for file in ../../../Datasets/1_5_big_datasets/bigdatasets/*; do
     files_array+=($file);
 done
 
@@ -32,7 +32,7 @@ for file in "${files_array[@]}"; do
     timestep_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 5 | cut -d 's' -f 2);
     version_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 6 | cut -d 'n' -f 2);
     file_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 7);
-    filename="RNNplus_v1_1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no""_""$version_no""_""$file_no";
+    filename="oLSTM_wtLSR_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no""_""$version_no""_""$file_no";
     flag=0;
     while : 
     do

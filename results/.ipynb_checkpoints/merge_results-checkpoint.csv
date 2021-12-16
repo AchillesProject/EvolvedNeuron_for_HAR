@@ -1,5 +1,5 @@
 dataset,rnnp_lsr_tf,simplernn_lsr_tf,olstm_lsr_c,rnnp_lsr_c,simplernn_wbias_c,simplernn_wtbias_c
-seqnetdata.ni=14.no=19.mc=221.numTimeSteps300.52.csv,72.36,73.9,75.56,78.04,74.72,72.47
+seqnetdata.ni=14.no=19.mc=221.numTimeSteps300.52.csv72.36,73.9,75.56,78.04,74.72,72.47
 seqnetdata.ni=15.no=22.mc=44.numTimeSteps84.60.csv,77.18,81.08,84.53,85.73,84.96,80.22
 seqnetdata.ni=20.no=24.mc=69.numTimeSteps71.85.csv,73.92,77.47,78.83,81.47,79.12,78.16
 seqnetdata.ni=23.no=27.mc=52.numTimeSteps80.51.csv,71.69,73.03,77.26,79.31,75.23,71.52
