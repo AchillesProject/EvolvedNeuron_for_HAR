@@ -13,7 +13,6 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler
 
 import tensorboard
 import keras
-from keras.utils import tf_utils
 
 from functools import partial
 from matplotlib import rc, style
@@ -29,9 +28,6 @@ import sys, os, math, time, datetime, re
 print("tf: ", tf.__version__)
 print("tb: ", tensorboard.__version__)
 print(os.getcwd())
-
-%matplotlib inline
-%config InlineBackend.figure_format='retina'
 
 style.use("seaborn")
 pd.plotting.register_matplotlib_converters()
@@ -52,9 +48,6 @@ tf.keras.backend.set_floatx('float64')
 # Debugging with Tensorboard
 snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 logdir="../logs/fit/rnn_v1_1/" + snapshot
-
-path = "../../../Datasets/1_5_big_datasets/bigdatasets" #"../../Datasets/0_180_small_datasets/Version9.128timesteps"
-fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
 
 with open("../params/params_5_bigsets.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
@@ -141,7 +134,6 @@ class RNN_plus_v1_cell(keras.engine.base_layer.Layer):
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
         self.use_bias = True
     
-    @tf_utils.shape_type_conversion
     def build(self, input_shape):
         self.kernel = self.add_weight(shape=(input_shape[-1], self.units), name='w_i', initializer=self.kernel_initializer, regularizer=None, constraint=None)
         self.recurrent_kernel = self.add_weight(shape=(self.units, self.units), name='w_o', initializer=self.recurrent_initializer, regularizer=None, constraint=None)
