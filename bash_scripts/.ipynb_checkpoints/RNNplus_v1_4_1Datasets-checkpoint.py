@@ -53,7 +53,7 @@ with open("../params/params_5_bigsets.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.5
-display(hyperparams)
+print(hyperparams)
 
 def seperateValues(data, noInput, noOutput):
     x_data, y_data = None, None
@@ -78,7 +78,7 @@ def customMetricfn_tensor(true, pred, threshold=0.5):
     threshold = tf.cast(threshold, pred.dtype)
     pred = tf.cast(pred >= threshold, pred.dtype)
     true = tf.cast(true >= threshold, true.dtype)
-    return keras.backend.mean(tf.equal(true, pred), axis=-1)
+    return tf.keras.backend.mean(tf.equal(true, pred), axis=-1)
 
 def customMetricfn(y_true, y_pred):
     count, numCorrect = 0, 0
@@ -113,7 +113,7 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
                           )
         return self.lr
     
-class RNN_plus_v1_cell(keras.engine.base_layer.Layer):
+class RNN_plus_v1_cell(tf.keras.layers.Layer):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -187,55 +187,40 @@ def lstm_model(timestep, noInput, noOutput, batchSize):
                    return_sequences=False))
 
     model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
-                                    beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False, name='oAdam_wtLSR')
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
     return model 
 
 def main(datasetpath):
     # Getting data from csv file
     filepath = os.path.join(datasetpath)
-    ni = datasetpath.split('.')[4].split('=')[1]
-    no = datasetpath.split('.')[5].split('=')[1]
-    mc = datasetpath.split('.')[6].split('=')[1]
-    timestep = datasetpath.split('.')[7].split('s')[1]
-    version = datasetpath.split('.')[8].split('n')[1]
-    dataset  = datasetpath.split('.')[-2]
-    filename = "{}_{}_{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep, version, dataset)
-
+    file = filepath.split('/')[-1]
+    ni = int(file.split('.')[1].split('=')[-1])
+    no = int(file.split('.')[2].split('=')[-1])
+    mc = int(file.split('.')[3].split('=')[-1])
+    timestep = int(file.split('.')[4].split('s')[-1])
+    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep)
     print('Dataset: ', filename)
-
     with open(filepath, "r") as fp:
-        [noInput, noOutput] = [int(x) for x in fp.readline().split(',')]
-    print("Number of Input and Output: ", noInput, noOutput)
+        [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
     rdf = np.array(pd.read_csv(filepath, skiprows=1))
-    
-    print('Step 1: Dividing the training and testing set with ratio 1:1 (50%).')
     df_val, df_train = train_test_split(rdf,test_size=hyperparams['testSize'])
-    print(df_train.shape, df_val.shape)
-    
-    print('Step 2: Separating values and labels.')
-    x_train, y_train = seperateValues(df_train, noInput, noOutput)
-    x_val, y_val = seperateValues(df_val, noInput, noOutput)
+    x_train, y_train = seperateValues(df_train, noIn, noOut)
+    x_val, y_val = seperateValues(df_val, noIn, noOut)
     for i in range( x_train.shape[ 0 ] ) :
         for j in range( x_train.shape[ 1 ] ) :
             for k in range( x_train.shape[ 2 ] ) :
                 x_train[ i, j, k ] = fromBit( x_train[ i, j, k ] )
-
     for i in range( y_train.shape[ 0 ] ) :
         for j in range( y_train.shape[ 1 ] ) :
             y_train[ i, j ] = fromBit( y_train[ i, j ] )
-
     for i in range( x_val.shape[ 0 ] ) :
         for j in range( x_val.shape[ 1 ] ) :
             for k in range( x_val.shape[ 2 ] ) :
                 x_val[ i, j, k ] = fromBit( x_val[ i, j, k ] )
-
     for i in range( y_val.shape[ 0 ] ) :
         for j in range( y_val.shape[ 1 ] ) :
             y_val[ i, j ] = fromBit( y_val[ i, j ] )
-    print("+ Training set:   ", x_train.shape, y_train.shape, x_train.dtype)
-    print("+ Validating set: ", x_val.shape, y_val.shape, x_val.dtype)
     
     print('Step 3: Training....')
     rnn_model = lstm_model(timestep, noIn, noOut, int(hyperparams['batchSize']))
