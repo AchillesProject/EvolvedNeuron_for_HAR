@@ -26,6 +26,7 @@ starttime_second=`date +%s`;
 echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($starttime_second).";
 
 for file in "${files_array[@]}"; do
+    echo $file
     ni_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 2 | cut -d '=' -f 2);
     no_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 3 | cut -d '=' -f 2);
     mc_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 4 | cut -d '=' -f 2);
