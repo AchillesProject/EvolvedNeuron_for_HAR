@@ -2,12 +2,25 @@ Task 2: Implementing the new RNN network called RNN Plus - log
 
 1-9/11/2021: Researching about how to implement new network with Tensorflow/Keras
 
+<<<<<<< HEAD
+10/11/2021: Generating the child network called RNNPlus_v1 by creating a new cell function, called RNN_plus_v1_cell.
+=======
 10/11/2021: [Notebook] Generating the child network called RNNPlus_v1 by creating a new cell function, called RNN_plus_v1_cell.
+>>>>>>> f449c52529ddd1fe388c35ad5f6075054aa9a0b6
 + It is inherrited from the base layer tf.keras.layers.Layer
 + The implementation is saved at ./RNNplus_v1.ipynb
 + The results is saved at ./results/2_rnn_plus/rnn_plus_v1_10112021
 + The logs is saved at ./logs/processing/2_rnn_plus/rnnplus_v1_10112021
 
+<<<<<<< HEAD
+15/11/2021: Run RNNplus_v1 for all 180 small datasets and merge results with the original LSTM
++ Notebook file: ./MergingResults_v1.ipynb
++ Python file: ./bash_scripts/RNNplus_v1_1Datasets.py
++ Results:
++ Merged Results:
+
+
+=======
 15/11/2021: [Script] Run RNNplus_v1 for all 180 small datasets and merge results with the original LSTM
 + Notebook file: ./MergingResults_v1.ipynb
 + Python file: ./bash_scripts/RNNplus_v1_1Datasets.py
@@ -35,6 +48,7 @@ Task 2: Implementing the new RNN network called RNN Plus - log
 * Number of Epochs equals to the dividine between numTrainingSteps and batchSize -> epochs = numTrainingSteps / trainsetSize / batchSize
 Updating the CustomMetrics function to work with tensor -> it can be worked with batchsizer larger than 1.
 + Notebook file: ./RNNplus_v1_2.ipynb
+>>>>>>> f449c52529ddd1fe388c35ad5f6075054aa9a0b6
 
 -- Complete Task 2 with best result logs in: ----------------------------------
 + log: 

@@ -1,0 +1,16 @@
+Items,3_5_30_128_9_35
+project,MasterProject
+log_dir,../logs//tuner//3_5_30_128_9_35//binary_crossentropy//MasterProject
+dataset_no,3_5_30_128_9_35
+objectives,"val_binary_accuracy, max"
+af_LSTM,softsign
+raf_LSTM,sigmoid
+af_dense,sigmoid
+optimizer,adam
+learning_rate,0.001
+thresholds_BA,0.51
+tuner/epochs,3
+tuned_score,0.54551
+loss,0.66663
+binary_accuracy,0.54879
+training_time (ms),596.56241
