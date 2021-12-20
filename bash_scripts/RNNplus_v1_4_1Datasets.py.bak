@@ -243,7 +243,7 @@ def main(datasetpath):
     rnn_model = lstm_model_wtLRS(timestep, noIn, noOut, int(hyperparams['batchSize']))
     count = 0
     train_time, pred_performance = {}, {}, {}
-    for count in range(3): # Run three times
+    for count in range(5): # Run three times
         strt_time = datetime.datetime.now() 
          model_history = model.fit(
                     x_train, y_train,

@@ -245,7 +245,7 @@ def main(datasetpath):
     train_time, pred_performance = {}, {}, {}
     for count in range(5): # Run three times
         strt_time = datetime.datetime.now() 
-         model_history = model.fit(
+        model_history = model.fit(
                     x_train, y_train,
                     batch_size=int(hyperparams['batchSize']),
                     verbose=1, # Suppress chatty output; use Tensorboard instead
