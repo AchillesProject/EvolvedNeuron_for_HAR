@@ -1,48 +1,18 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Conv2D, LSTM, MaxPooling2D,AveragePooling2D,GlobalMaxPooling2D, GlobalAveragePooling2D, Flatten, Dropout, Reshape, BatchNormalization, ReLU
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.optimizers import Adam, SGD
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.python.util.tf_export import keras_export
-from tensorflow.keras.backend import eval
-
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler
-
 import tensorboard
-import keras
-
-from functools import partial
-from matplotlib import rc, style
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pylab import rcParams
-import pandas as pd #pd.plotting.register_matplotlib_converters
+import pandas as pd
 import numpy as np
-from scipy import stats
-
 import sys, os, math, time, datetime, re
+from sklearn.model_selection import train_test_split
 
 print("tf: ", tf.__version__)
 print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
-style.use("seaborn")
-pd.plotting.register_matplotlib_converters()
-sns.set(style='whitegrid', palette='muted', font_scale = 1)
-
-# rcParams['figure.figsize'] = 22, 10
-
-RANDOM_SEED = 42
-
-np.random.seed(RANDOM_SEED)
-tf.random.set_seed(RANDOM_SEED)
 tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(1)
-tf.config.set_visible_devices([], 'GPU')
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
+tf.autograph.set_verbosity(0)
+# tf.config.set_visible_devices([], 'GPU')
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 tf.keras.backend.set_floatx('float64')
 
 # Debugging with Tensorboard
@@ -242,7 +212,7 @@ def main(datasetpath):
     print('Step 3: Training....')
     rnn_model = lstm_model_wtLRS(timestep, noIn, noOut, int(hyperparams['batchSize']))
     count = 0
-    train_time, pred_performance = {}, {}, {}
+    train_time, pred_performance = {}, {}
     for count in range(5): # Run three times
         strt_time = datetime.datetime.now() 
         model_history = model.fit(
