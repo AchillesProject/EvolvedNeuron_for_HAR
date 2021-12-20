@@ -70,7 +70,7 @@ for file in "${files_array[@]}"; do
 
         if [[ "$flag" -eq "1" ]]; then
             `taskset -c "$cpu"  python "$pythonscript" "$file" &>"$log_dir" &!`;
-            echo "Assigning Cpu$((cpu)) to file number $filename";
+            echo "Assigning Cpu$((cpu)) to file $filename";
             break
         fi
     done

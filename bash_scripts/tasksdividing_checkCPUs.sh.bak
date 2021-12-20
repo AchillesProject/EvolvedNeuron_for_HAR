@@ -58,6 +58,7 @@ do
     fi
     if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
         cpu_index=0;
+		idlecores=1;
     else
         ((cpu_index += 1));
     fi

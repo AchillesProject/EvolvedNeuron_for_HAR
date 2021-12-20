@@ -80,7 +80,7 @@ for file in "${files_array[@]}"; do
 done
 
 # Check if all the processes has finished
-idlecores=1;
+idlecores=0;
 cpu_index=0;
 
 while : 
@@ -110,7 +110,7 @@ do
     fi
     if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
         cpu_index=0;
-		idlecores=1;
+		idlecores=0;
     else
         ((cpu_index += 1));
     fi
