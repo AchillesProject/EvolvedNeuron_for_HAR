@@ -11,7 +11,7 @@ cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
 
-pythonscript="./RNNplus_v1_4_1Datasets.py";
+pythonscript="./RNNplus_v1_3_1Datasets.py";
 
 for file in ../../Datasets/1_5_big_datasets/bigdatasets/*; do
     files_array+=($file);

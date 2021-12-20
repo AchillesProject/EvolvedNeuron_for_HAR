@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-readonly CORE_IDLE_THRESHOLD=75;
+readonly CORE_IDLE_THRESHOLD=40;
 readonly CORE_USED_THRESHOLD=25;
 readonly TOP_LOOP_NUMBER=3;
 readonly TOP_DELAY_NUMBER=2;
 readonly SLEEP_COUNT=0.1; #in second
 files_array=();
-cpus_array=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32);
+cpus_array=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31);
 cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
 
-pythonscript="./RNNplus_v1_4_1Datasets.py";
+pythonscript="./RNNplus_v1_3_1Datasets.py";
 
 for file in ../../Datasets/1_5_big_datasets/bigdatasets/*; do
     files_array+=($file);
@@ -30,7 +30,7 @@ for file in "${files_array[@]}"; do
     no_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 3 | cut -d '=' -f 2);
     mc_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 4 | cut -d '=' -f 2);
     timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 5 | cut -d 's' -f 2);
-    filename="oLSTM_wtLSR_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
+    filename="RNNp_wtLSR_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
     flag=0;
     while : 
     do
