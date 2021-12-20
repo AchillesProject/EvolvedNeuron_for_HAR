@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-readonly CORE_IDLE_THRESHOLD=75;
+readonly CORE_IDLE_THRESHOLD=40;
 readonly CORE_USED_THRESHOLD=25;
 readonly TOP_LOOP_NUMBER=3;
 readonly TOP_DELAY_NUMBER=2;
