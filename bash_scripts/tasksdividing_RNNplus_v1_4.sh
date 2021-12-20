@@ -35,8 +35,7 @@ for file in "${files_array[@]}"; do
     while : 
     do
         cpu=${cpus_array[$cpu_index]};
-        cpu_str="Cpu$((cpu + 1))"
-        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu + 1))" | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
+        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu))" | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
         readarray -t core_idle_lines <<< "$core_idle_values"
 
         total=0;
@@ -71,7 +70,7 @@ for file in "${files_array[@]}"; do
 
         if [[ "$flag" -eq "1" ]]; then
             `taskset -c "$cpu"  python "$pythonscript" "$file" &>"$log_dir" &!`;
-            echo "Assigning $cpu_str to file number $filename";
+            echo "Assigning Cpu$((cpu)) to file number $filename";
             break
         fi
     done
@@ -83,7 +82,7 @@ idlecores=1;
 while : 
 do
     cpu=${cpus_array[$cpu_index]};
-    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu + 1))" | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
+    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu))" | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
     readarray -t core_idle_lines <<< "$core_idle_values"
 
     total=0;

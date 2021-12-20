@@ -53,6 +53,7 @@ do
         ((idlecores+=1))
     fi
     if (( $idlecores == $cpus_array_length)); then
+		echo "Break"
         break
     fi
     if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
