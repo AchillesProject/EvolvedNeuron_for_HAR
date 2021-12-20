@@ -153,6 +153,14 @@ def rnn_model(timestep, noInput, noOutput, batchSize):
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
     return model
     
+def rnn_wtLRS_model(timestep, noInput, noOutput, batchSize):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=noInput+noOutput), input_shape=[timestep, noInput], unroll=False, name='SimpleRNN_layer'))
+    model.add(tf.keras.layers.Dense(noOutput, activation='tanh', name='MLP_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="oAdam_wtLRS")
+    model.compile(optimizer=optimizer, loss = 'mse')
+    return model
+    
 def lstm_model(timestep, noInput, noOutput, batchSize):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))

@@ -182,7 +182,7 @@ def lstm_model_wtLRS(timestep, noInput, noOutput, batchSize):
                    return_sequences=False))
 
     model.add(tf.keras.layers.Dense(noOutput, activation='tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtLRS")
     model.compile(optimizer=optimizer, loss = 'mse')
     return model
     
