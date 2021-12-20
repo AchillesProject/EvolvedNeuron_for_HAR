@@ -25,7 +25,7 @@ starttime_date=`date`;
 starttime_second=`date +%s`;
 echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($starttime_second).";
 
-echo "Total CPU length $cpus_array_length"
+echo "Total CPU length $cpus_array_length";
 
 # Check if all the processes has finished
 idlecores=1;
@@ -46,7 +46,7 @@ do
         ((total++));
     done
     core_idle=$((100 - sum/total));
-	echo "CPU index: $cpu_index - CPU: $cpu - CPU idle score: $core_idle - CPU IDLE Threshold: $CORE_IDLE_THRESHOLD"
+	echo "CPU index: $cpu_index - CPU: $cpu - CPU idle score: $core_idle - CPU IDLE Threshold: $CORE_IDLE_THRESHOLD";
     if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
         ((idlecores+=1))
     fi
