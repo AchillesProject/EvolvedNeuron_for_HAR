@@ -210,7 +210,7 @@ def main(datasetpath):
             y_val[ i, j ] = fromBit( y_val[ i, j ] )
     
     print('Step 3: Training....')
-    rnn_model = lstm_model_wtLRS(timestep, noIn, noOut, int(hyperparams['batchSize']))
+    model = lstm_model_wtLRS(timestep, noIn, noOut, int(hyperparams['batchSize']))
     count = 0
     train_time, pred_performance = {}, {}
     for count in range(5): # Run three times
@@ -226,7 +226,7 @@ def main(datasetpath):
                 )
         curr_time = datetime.datetime.now()
         train_time[count] = round((curr_time - strt_time).total_seconds(),5)
-        pred_performance[count] = round(customMetricfn(y_val, rnn_model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
+        pred_performance[count] = round(customMetricfn(y_val, model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
     
     print('Step 5: Saving result.')
     training_result = {**{'dataset_no': filename},
