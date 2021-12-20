@@ -34,7 +34,7 @@ cpu_index=0;
 while : 
 do
     cpu=${cpus_array[$cpu_index]};
-    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu))" | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
+    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu)) " | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
     readarray -t core_idle_lines <<< "$core_idle_values"
 
     total=0;
