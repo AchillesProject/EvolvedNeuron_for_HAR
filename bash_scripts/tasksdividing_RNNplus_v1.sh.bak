@@ -10,9 +10,10 @@ cpus_array=(8 9 10 11 12 13 14 15);
 cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
-lossmethod="mse"
 
-for file in ../results/mse_20102021_ES_NS/*; do
+pythonscript="./RNNplus_v1_1Datasets.py";
+
+for file in ../Version9.128timesteps/*; do
     files_array+=($file);
 done
 
@@ -22,10 +23,16 @@ done
 
 starttime_date=`date`;
 starttime_second=`date +%s`;
-echo "Starting Hyperparameter Tunning with ${#files_array[@]} total file on $starttime_date ($starttime_second).";
+echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($starttime_second).";
 
 for file in "${files_array[@]}"; do
-    filename=$(echo $file | cut -d '/' -f 4 | cut -d '.' -f 1);
+    ni_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 2 | cut -d '=' -f 2);
+    no_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 3 | cut -d '=' -f 2);
+    mc_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 4 | cut -d '=' -f 2);
+    timestep_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 5 | cut -d 's' -f 2);
+    version_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 6 | cut -d 'n' -f 2);
+    file_no=$(echo $file | cut -d '/' -f 3 | cut -d '.' -f 7);
+    filename="RNNplus_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no""_""$version_no""_""$file_no";
     flag=0;
     while : 
     do
@@ -46,12 +53,12 @@ for file in "${files_array[@]}"; do
         done
         core_idle=$((100 - sum/total));
         if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
-            log_dir="../logs/rerun/log_rerun_${filename}.txt"
+            log_dir="../logs/processing/log_${filename}.txt"
             if [[ "${cpus_assigned_array[$cpu_index]}" == "0" ]]; then
                 cpus_assigned_array[$cpu_index]=$filename;
                 flag=1;
             else
-                if [[ $(tail -1 ../logs/rerun/log_rerun_"${cpus_assigned_array[$cpu_index]}".txt) == *"Complete"* ]] || [[ $(tail -1 ../logs/rerun/log_rerun_"${cpus_assigned_array[$cpu_index]}".txt) == *"Error"* ]]; then                    
+                if [[ $(tail -1 ../logs/processing/log_"${cpus_assigned_array[$cpu_index]}".txt) == *"Complete"* ]] || [[ $(tail -1 ../logs/processing/log_"${cpus_assigned_array[$cpu_index]}".txt) == *"Error"* ]]; then                    
                     cpus_assigned_array[$cpu_index]=$filename;
                     flag=1;
                 fi
@@ -65,7 +72,7 @@ for file in "${files_array[@]}"; do
         fi
 
         if [[ "$flag" -eq "1" ]]; then
-            `taskset -c "$cpu"  python ./Hyperband_1Datasets_rerun.py "$lossmethod" "$file" &>"$log_dir" &!`;
+            `taskset -c "$cpu"  python "$pythonscript" "$file" &>"$log_dir" &!`;
             echo "Assigning $cpu_str to file number $filename";
             break
         fi
@@ -107,4 +114,4 @@ done
 
 endtime_date=`date`;
 endtime_second=`date +%s`;
-echo "Finish Hyperparameter Tunning with ${#files_array[@]} total file on $endtime_date ($endtime_second) in $(($endtime_second - $starttime_second)).";
+echo "Finish Training with ${#files_array[@]} total file on $endtime_date ($endtime_second) in $(($endtime_second - $starttime_second)).";
