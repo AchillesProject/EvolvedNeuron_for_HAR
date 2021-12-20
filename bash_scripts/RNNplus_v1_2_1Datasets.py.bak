@@ -202,7 +202,7 @@ def main(datasetpath):
     no = int(file.split('.')[2].split('=')[-1])
     mc = int(file.split('.')[3].split('=')[-1])
     timestep = int(file.split('.')[4].split('s')[-1])
-    filename = "{}_{}_{}_{}_{}".format('RNN_wtLRS_v1', ni, no, mc, timestep)
+    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep)
     print('Dataset: ', filename)
     with open(filepath, "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]

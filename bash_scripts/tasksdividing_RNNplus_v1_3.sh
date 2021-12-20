@@ -30,7 +30,7 @@ for file in "${files_array[@]}"; do
     no_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 3 | cut -d '=' -f 2);
     mc_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 4 | cut -d '=' -f 2);
     timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 5 | cut -d 's' -f 2);
-    filename="RNNp_wtLSR_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
+    filename="RNNp_wtLRS_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
     flag=0;
     while : 
     do

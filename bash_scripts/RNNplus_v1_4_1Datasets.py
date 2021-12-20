@@ -157,7 +157,7 @@ def lstm_model(timestep, noInput, noOutput, batchSize):
                    return_sequences=False))
 
     model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False, name='oAdam_wtLSR')
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False, name='oAdam_wtLRS')
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
     return model 
 
@@ -186,7 +186,7 @@ def main(datasetpath):
     no = int(file.split('.')[2].split('=')[-1])
     mc = int(file.split('.')[3].split('=')[-1])
     timestep = int(file.split('.')[4].split('s')[-1])
-    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep)
+    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLRS_v1', ni, no, mc, timestep)
     print('Dataset: ', filename)
     with open(filepath, "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
