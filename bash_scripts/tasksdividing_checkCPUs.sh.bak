@@ -46,7 +46,7 @@ do
         ((total++));
     done
     core_idle=$((100 - sum/total));
-	echo "CPU index: $cpu_index - CPU: $cpu - CPU idle score: $core_idle"
+	echo "CPU index: $cpu_index - CPU: $cpu - CPU idle score: $core_idle - CPU IDLE Threshold: $CORE_IDLE_THRESHOLD"
     if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
         ((idlecores+=1))
     fi
