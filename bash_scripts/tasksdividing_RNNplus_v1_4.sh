@@ -98,7 +98,6 @@ do
         ((total++));
     done
     core_idle=$((100 - sum/total));
-	echo "Cpu$((cpu)) - $core_idle %";
     if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
         ((idlecores+=1))
     fi
