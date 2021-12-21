@@ -255,5 +255,4 @@ if __name__=="__main__":
     
     main(datasetpath, lossmethod)
     
->>>>>>> f449c52529ddd1fe388c35ad5f6075054aa9a0b6
     print("Complete ", datasetpath)

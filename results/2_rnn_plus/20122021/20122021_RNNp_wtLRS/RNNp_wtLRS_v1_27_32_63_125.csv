@@ -1,0 +1,5 @@
+Items,RNNp_wtLRS_v1_27_32_63_125
+dataset_no,RNNp_wtLRS_v1_27_32_63_125
+dataset_name,../../Datasets/1_5_big_datasets/bigdatasets/seqnetdata.ni=27.no=32.mc=63.numTimeSteps125.32.csv
+traintime_avg (ms):,200.81834
+accuracy_avg,79.6626

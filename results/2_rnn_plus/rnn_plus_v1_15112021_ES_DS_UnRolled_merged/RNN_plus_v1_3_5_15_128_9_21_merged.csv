@@ -6,3 +6,6 @@ rnnplus_avg,0.73371
 olstm_avg,0.773013
 delta,-0.039303
 isbetter,worse
+olstm_0,0.99984
+olstm_1,1.0
+olstm_2,1.0

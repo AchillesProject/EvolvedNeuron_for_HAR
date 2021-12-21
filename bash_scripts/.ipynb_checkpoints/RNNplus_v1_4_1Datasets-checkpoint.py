@@ -1,48 +1,18 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Conv2D, LSTM, MaxPooling2D,AveragePooling2D,GlobalMaxPooling2D, GlobalAveragePooling2D, Flatten, Dropout, Reshape, BatchNormalization, ReLU
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.optimizers import Adam, SGD
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.python.util.tf_export import keras_export
-from tensorflow.keras.backend import eval
-
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler
-
 import tensorboard
-import keras
-
-from functools import partial
-from matplotlib import rc, style
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pylab import rcParams
-import pandas as pd #pd.plotting.register_matplotlib_converters
+import pandas as pd
 import numpy as np
-from scipy import stats
-
 import sys, os, math, time, datetime, re
+from sklearn.model_selection import train_test_split
 
 print("tf: ", tf.__version__)
 print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
-style.use("seaborn")
-pd.plotting.register_matplotlib_converters()
-sns.set(style='whitegrid', palette='muted', font_scale = 1)
-
-# rcParams['figure.figsize'] = 22, 10
-
-RANDOM_SEED = 42
-
-np.random.seed(RANDOM_SEED)
-tf.random.set_seed(RANDOM_SEED)
 tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(1)
-tf.config.set_visible_devices([], 'GPU')
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
+tf.autograph.set_verbosity(0)
+# tf.config.set_visible_devices([], 'GPU')
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 tf.keras.backend.set_floatx('float64')
 
 # Debugging with Tensorboard
@@ -165,6 +135,23 @@ def rnn_plus_model(timestep, noInput, noOutput, batchSize):
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
     return model
 
+def rnn_plus_wtLRS_model(timestep, noInput, noOutput, batchSize):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=noInput+noOutput), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+    model.add(tf.keras.layers.Dense(noOutput, activation='tanh', name='MLP_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
+    model.compile(optimizer=optimizer, loss = 'mse')
+    return model
+
+def rnn_plus_wtCMF_model(timestep, noInput, noOutput, batchSize):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=noInput+noOutput), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+    model.add(tf.keras.layers.Dense(noOutput, activation='tanh', name='MLP_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="oAdam_wtLRS")
+    model.compile(optimizer=optimizer, loss = 'mse')
+    return model
+
 def rnn_model(timestep, noInput, noOutput, batchSize):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))
@@ -174,7 +161,18 @@ def rnn_model(timestep, noInput, noOutput, batchSize):
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_rnn")
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
     return model
-    
+
+def rnn_plus_model(timestep, noInput, noOutput, batchSize):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Input(shape=(timestep, noInput), name='Input_layer'))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=noInput+noOutput), unroll=False, name='RNNp_layer', stateful=False))
+    model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
+    # model.compile(optimizer=optimizer, loss = 'mse', metrics=[customMetricError(threshold=0.0)], run_eagerly=False)
+    model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
+    return model
+
 def lstm_model(timestep, noInput, noOutput, batchSize):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))
@@ -187,10 +185,28 @@ def lstm_model(timestep, noInput, noOutput, batchSize):
                    return_sequences=False))
 
     model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False, name='oAdam_wtLSR')
+    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                    beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
-    return model 
+    return model
 
+def lstm_model_wtLRS(timestep, noInput, noOutput, batchSize):
+    model = tf.keras.Sequential()
+    # model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))
+    model.add(tf.keras.layers.LSTM(units=noInput+noOutput, 
+                   input_shape=[timestep, noInput],
+                   activation='tanh',
+                   recurrent_activation='sigmoid',
+                   unroll =False,
+                   use_bias=True,
+                   recurrent_dropout=0.0,
+                   return_sequences=False))
+
+    model.add(tf.keras.layers.Dense(noOutput, activation='tanh', name='MLP_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+    model.compile(optimizer=optimizer, loss = 'mse')
+    return model
+    
 def main(datasetpath):
     # Getting data from csv file
     filepath = os.path.join(datasetpath)
@@ -199,7 +215,7 @@ def main(datasetpath):
     no = int(file.split('.')[2].split('=')[-1])
     mc = int(file.split('.')[3].split('=')[-1])
     timestep = int(file.split('.')[4].split('s')[-1])
-    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep)
+    filename = "{}_{}_{}_{}_{}".format('rnnp_wtCMF_tf_v1', ni, no, mc, timestep)
     print('Dataset: ', filename)
     with open(filepath, "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
@@ -223,25 +239,23 @@ def main(datasetpath):
             y_val[ i, j ] = fromBit( y_val[ i, j ] )
     
     print('Step 3: Training....')
-    rnn_model = lstm_model(timestep, noIn, noOut, int(hyperparams['batchSize']))
+    model = rnn_plus_wtCMF_model(timestep, noIn, noOut, int(hyperparams['batchSize']))
     count = 0
-    val_performance, train_time, pred_performance = {}, {}, {}
-    for count in range(3): # Run three times
+    train_time, pred_performance = {}, {}
+    for count in range(5): # Run three times
         strt_time = datetime.datetime.now() 
-        training_history_v1 = rnn_model.fit(
-                    x_train, # input
-                    y_train, # output
+        model_history = model.fit(
+                    x_train, y_train,
                     batch_size=int(hyperparams['batchSize']),
                     verbose=1, # Suppress chatty output; use Tensorboard instead
                     epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                     validation_data=(x_val, y_val),
-                    callbacks=[tf.keras.callbacks.EarlyStopping("val_custom_metric_error"), tf.keras.callbacks.TerminateOnNaN(), tf.keras.callbacks.TensorBoard(log_dir=logdir)]
+                    shuffle=True,
+                    use_multiprocessing=False
                 )
         curr_time = datetime.datetime.now()
         train_time[count] = round((curr_time - strt_time).total_seconds(),5)
-
-        val_performance[count] = rnn_model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
-        pred_performance[count] = round(customMetricfn(y_val, rnn_model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
+        pred_performance[count] = round(customMetricfn(y_val, model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
     
     print('Step 5: Saving result.')
     training_result = {**{'dataset_no': filename},

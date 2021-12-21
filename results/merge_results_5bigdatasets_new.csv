@@ -1,0 +1,6 @@
+dataset;simplernn_wtlrs_tf;rnnp_wtlrs_tf;rnnp_lrs_c;olstm_wtlrs_tf;olstm_wtlrs_c;rnnp_wtlrs_c
+seqnetdata.ni=14.no=19.mc=221.numTimeSteps300.52.csv;75.9634;79.4974;78.04;77.992;75.45;77.16
+seqnetdata.ni=15.no=22.mc=44.numTimeSteps84.60.csv;85.6642;85.6588;85.73;87.5522;84.52;85.49
+seqnetdata.ni=20.no=24.mc=69.numTimeSteps71.85.csv;81.2388;80.6768;81.47;81.623;78.88;81.05
+seqnetdata.ni=23.no=27.mc=52.numTimeSteps80.51.csv;77.4656;77.929;79.31;77.1728;77.29;78.95
+seqnetdata.ni=27.no=32.mc=63.numTimeSteps125.32.csv;79.512;79.6626;81.21;80.5862;78.96;80.33
