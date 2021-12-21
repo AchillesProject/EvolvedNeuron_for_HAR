@@ -6,7 +6,7 @@ readonly TOP_LOOP_NUMBER=3;
 readonly TOP_DELAY_NUMBER=2;
 readonly SLEEP_COUNT=0.1; #in second
 files_array=();
-cpus_array=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31);
+cpus_array=(5 6 7 8 9);
 cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
@@ -98,7 +98,6 @@ do
         ((total++));
     done
     core_idle=$((100 - sum/total));
-	echo "Cpu$((cpu)) - $core_idle %";
     if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
         ((idlecores+=1))
     fi
