@@ -169,7 +169,6 @@ def rnn_plus_model(timestep, noInput, noOutput, batchSize):
     model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
-    # model.compile(optimizer=optimizer, loss = 'mse', metrics=[customMetricError(threshold=0.0)], run_eagerly=False)
     model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
     return model
 
