@@ -7,8 +7,8 @@ readonly TOP_DELAY_NUMBER=2;
 readonly SLEEP_COUNT=0.1; #in second
 files_array=();
 models_array=("LSTM" "RNN_plus" "RNN");
-LRSoptions_array=(False True);
-CMFoptions_array=(False True);
+LRSoptions_array=(false true);
+CMFoptions_array=(false true);
 cpus_array=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61);
 cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
@@ -31,10 +31,10 @@ echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($
 for model in "${models_array[@]}"; do
 	for LRSoption in "${LRSoptions_array[@]}"; do
 		for CMFoption in "${CMFoptions_array[@]}"; do
-			((sLRS=LRSoption?'wLRS':'wtLRS'));
-			((sCMF=CMFoption?'wCMF':'wtCMF'));
+			((sLRS=[[ "${LRSoption}" == "true" ]]?'wLRS':'wtLRS'));
+			((sCMF=[[ "${CMFoption}" == "true" ]]?'wCMF':'wtCMF'));
 			prefix="${model,,}""_""$sLRS""_""$sCMF""_tf";
-			echo "$prefix"
+			echo "Prefix = $prefix"
 			for file in "${files_array[@]}"; do
 				ni_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 2 | cut -d '=' -f 2);
 				no_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 3 | cut -d '=' -f 2);
