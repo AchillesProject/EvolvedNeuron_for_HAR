@@ -1,0 +1,6 @@
+dataset,lstm_wtlsr_wb_nes_tf,lstm_wtlrs_wb_c,rnnp_lrs_tf,simplernn_lrs_tf,lstm_wtlrs_wb_tf,lstm_lrs_wb_tf,lstm_wtlrs_nes_wb_c,lstm_lrs_wb_c,lstm_wtlrs_wb_c.1,rnnp_lrs_c,simplernn_wbias_c,simplernn_wtbias_c,olstm_wtlrs_c
+seqnetdata.ni=14.no=19.mc=221.numTimeSteps300.52.csv,75.69,75.45,72.36,73.9,73.44,74.64,75.17,75.56,75.45,78.04,74.72,72.47,75.45
+seqnetdata.ni=15.no=22.mc=44.numTimeSteps84.60.csv,84.52,84.52,77.18,81.08,80.19,82.97,84.45,84.53,84.52,85.73,84.96,80.22,84.52
+seqnetdata.ni=20.no=24.mc=69.numTimeSteps71.85.csv,80.32,78.88,73.92,77.47,77.47,78.13,78.79,78.83,78.88,81.47,79.12,78.16,78.88
+seqnetdata.ni=23.no=27.mc=52.numTimeSteps80.51.csv,76.78,77.29,71.69,73.03,73.42,74.96,77.3,77.26,77.29,79.31,75.23,71.52,77.29
+seqnetdata.ni=27.no=32.mc=63.numTimeSteps125.32.csv,79.4,78.96,71.92,76.65,76.64,77.66,79.0,79.36,78.96,81.21,78.96,77.77,78.96
