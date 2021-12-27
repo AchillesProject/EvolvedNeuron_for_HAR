@@ -12,7 +12,8 @@ print(os.getcwd())
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(0)
 # tf.config.set_visible_devices([], 'GPU')
-# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 tf.keras.backend.set_floatx('float64')
 
 # Debugging with Tensorboard
