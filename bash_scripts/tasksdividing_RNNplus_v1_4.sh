@@ -31,8 +31,8 @@ echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($
 for model in "${models_array[@]}"; do
 	for LRSoption in "${LRSoptions_array[@]}"; do
 		for CMFoption in "${CMFoptions_array[@]}"; do
-			if [ "${LRSoption}"=="true" ]; then sLRS='wLRS'; else sLRS='wtLRS'; fi
-			if [ "${CMFoption}"=="true" ]; then sCMF='wCMF'; else sCMF='wtCMF'; fi
+			if [ "${LRSoption}" == "true" ]; then sLRS='wLRS'; else sLRS='wtLRS'; fi
+			if [ "${CMFoption}" == "true" ]; then sCMF='wCMF'; else sCMF='wtCMF'; fi
 			prefix="${model,,}""_""$sLRS""_""$sCMF""_tf";
 			echo "Prefix = $prefix"
 			for file in "${files_array[@]}"; do

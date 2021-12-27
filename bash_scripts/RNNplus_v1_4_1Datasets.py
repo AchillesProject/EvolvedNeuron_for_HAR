@@ -307,7 +307,7 @@ class models(RNN_models, RNN_plus_models, LSTM_models):
         sLRS = 'wLRS' if self.isLRS else 'wtLRS'
         sCMF = 'wCMF' if self.isCMF else 'wtCMF'
         prefix = f'{self.modeltype.lower()}_{sLRS}_{sCMF}_tf'
-        display(prefix)
+        print(f'Python script prefix: {prefix}')
         if self.modeltype == 'LSTM':
             return self.lstm_choose_models()
         elif self.modeltype == 'RNN_plus':
