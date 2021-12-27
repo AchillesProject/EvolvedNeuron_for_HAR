@@ -31,9 +31,9 @@ echo "Starting Training with ${#files_array[@]} total file on $starttime_date ($
 for model in "${models_array[@]}"; do
 	for LRSoption in "${LRSoptions_array[@]}"; do
 		for CMFoption in "${CMFoptions_array[@]}"; do
-			if [ "${LRSoption}"=="true" ]; then sLRS='wLRS'; else sLRS='wtLRS'; fi
-			if [ "${CMFoption}"=="true" ]; then sCMF='wCMF'; else sCMF='wtCMF'; fi
-			prefix="${model,,}""_""$sLRS""_""$sCMF""_tf";
+			if [ "${LRSoption}" == "true" ]; then sLRS='wLRS'; else sLRS='wtLRS'; fi;
+			if [ "${CMFoption}" == "true" ]; then sCMF='wCMF'; else sCMF='wtCMF'; fi;
+			prefix="${model,,}""_""${sLRS}""_""${sCMF}""_tf";
 			echo "Prefix = $prefix"
 			for file in "${files_array[@]}"; do
 				ni_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 2 | cut -d '=' -f 2);
@@ -79,7 +79,7 @@ for model in "${models_array[@]}"; do
 					fi
 
 					if [[ "$flag" -eq "1" ]]; then
-						`taskset -c "$cpu"  python "$pythonscript" "$file" "$model" "$LRSoption" "$CMFoption" &>"$log_dir" &!`;
+						`taskset -c "$cpu"  python3 "$pythonscript" "$file" "$model" "$LRSoption" "$CMFoption" &>"$log_dir" &!`;
 						echo "Assigning Cpu$((cpu)) to file $filename";
 						break
 					fi
