@@ -240,7 +240,7 @@ class LSTM_models():
         self.isLRS = isLRS
         self.isCMF = isCMF
         
-    def lstm_choose_models():
+    def lstm_choose_models(self):
         if (self.isLRS and self.isCMF):
             return self.lstm_wLRS_wCMF_model()
         elif (self.isLRS and not self.isCMF):
