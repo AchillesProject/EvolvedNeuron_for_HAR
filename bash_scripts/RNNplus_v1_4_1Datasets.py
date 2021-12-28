@@ -385,8 +385,8 @@ if __name__=="__main__":
     if len(sys.argv) == 5:
         datasetpath = str(sys.argv[1])
         modeltype   = str(sys.argv[2])
-        isLRS       = bool(sys.argv[3])
-        isCMF       = bool(sys.argv[4])
+        isLRS       = True if str(sys.argv[3]) == 'true' else False
+        isCMF       = True if str(sys.argv[4]) == 'true' else False
     else:
         print("Don't have sufficient arguments.")
     
