@@ -326,9 +326,6 @@ def main(datasetpath, modeltype, isLRS, isCMF):
     sLRS = 'wLRS' if isLRS else 'wtLRS'
     sCMF = 'wCMF' if isCMF else 'wtCMF'
     prefix = f'{modeltype.lower()}_{sLRS}_{sCMF}_tf'
-    
-    logdir = f'../logs/scalars/{prefix}_{filename}'
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
     if ISMOORE_DATASETS:  
         ni = int(file.split('.')[1].split('=')[-1])
@@ -343,6 +340,9 @@ def main(datasetpath, modeltype, isLRS, isCMF):
         filename = f"{prefix}_{hyperparams['batchSize']}_{timestep}"
         print("+++ Batch Size: ", hyperparams['batchSize'])
     print('Filename: ', filename)
+    
+    logdir = f'../logs/scalars/{prefix}_{filename}'
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
     
     with open(filepath, "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
