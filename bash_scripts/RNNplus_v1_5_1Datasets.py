@@ -327,7 +327,7 @@ def main(datasetpath, modeltype, isLRS, isCMF):
     sCMF = 'wCMF' if isCMF else 'wtCMF'
     prefix = f'{modeltype.lower()}_{sLRS}_{sCMF}_tf'
     
-    logdir = f'../logs/scalars/{model_name}_{filename}'
+    logdir = f'../logs/scalars/{prefix}_{filename}'
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
     if ISMOORE_DATASETS:  
