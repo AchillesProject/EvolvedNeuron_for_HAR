@@ -44,9 +44,9 @@ for model in "${models_array[@]}"; do
 					timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 5 | cut -d 's' -f 2);
 					filename="$prefix""_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
 				else
-					echo "$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 2)"                
-					bs_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 2 | cut -d '=' -f 2);
-					timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 3 | cut -d '=' -f 2);
+					echo "$(echo $file | cut -d '/' -f 5 | cut -d '.' -f 2)"                
+					bs_no=$(echo $file | cut -d '/' -f 5 | cut -d '.' -f 2 | cut -d '=' -f 2);
+					timestep_no=$(echo $file | cut -d '/' -f 5 | cut -d '.' -f 3 | cut -d '=' -f 2);
 					filename="$prefix""_""$bs_no""_""$timestep_no";
                 fi
 				flag=0;
