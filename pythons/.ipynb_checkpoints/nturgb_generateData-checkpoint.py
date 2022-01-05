@@ -4,14 +4,15 @@ import numpy as np
 import csv
 
 NPY_DIR = '../../Datasets/5_nturgb+d/nturgb+d_npy/'
-
-for idx, file_name in enumerate(NPY_DIR, '*.npy'):
-    file = np.load(file_name)
-    frame_dict[file_name] = file.shape[0]
-    
+frame_dict = {}
 dataset = np.array([])
 fileset = np.array([])
 seq_no_arr = [20, 30, 40, 50, 60]
+
+for idx, file_name in glob.glob(os.path.join(NPY_DIR, '*.npy')):
+    file = np.load(file_name)
+    frame_dict[file_name] = file.shape[0]    
+
 for seq_no in seq_no_arr:
     for k, v in frame_dict.items():
         if v > seq_no:
