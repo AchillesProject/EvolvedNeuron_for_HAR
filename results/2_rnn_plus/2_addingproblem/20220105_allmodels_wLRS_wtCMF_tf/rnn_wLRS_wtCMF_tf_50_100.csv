@@ -1,5 +1,5 @@
 Items,rnn_wLRS_wtCMF_tf_50_100
 dataset_no,rnn_wLRS_wtCMF_tf_50_100
 dataset_name,../../Datasets/2_addingproblem/addingProblem.bs=50.ts=100.csv
-traintime_avg (ms):,82.23031
+traintime_avg (ms):,41.74837
 accuracy_avg,100.0
