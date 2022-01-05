@@ -341,7 +341,7 @@ def main(datasetpath, modeltype, isLRS, isCMF):
         print("+++ Batch Size: ", hyperparams['batchSize'])
     print('Filename: ', filename)
     
-    logdir = f'../logs/scalars/{prefix}_{filename}'
+    logdir = f'../logs/scalars/{filename}'
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
     
     with open(filepath, "r") as fp:
@@ -375,7 +375,7 @@ def main(datasetpath, modeltype, isLRS, isCMF):
     model =  models(modeltype=modeltype, timestep=timestep, noInput=noIn, noOutput=noOut, batchSize=int(hyperparams['batchSize']), isLRS=isLRS, isCMF=isCMF).chooseModels()
     count = 0
     train_time, pred_performance = {}, {}
-    for count in range(5): # Run n times
+    for count in range(1): # Run n times
         strt_time = datetime.datetime.now() 
         model_history = model.fit(
                     x_train, y_train,
