@@ -9,7 +9,7 @@ dataset = np.array([])
 fileset = np.array([])
 seq_no_arr = [20, 30, 40, 50, 60]
 
-for idx, file_name in glob.glob(os.path.join(NPY_DIR, '*.npy')):
+for idx, file_name in enumerate(glob.glob(os.path.join(NPY_DIR, '*.npy'))):
     file = np.load(file_name)
     frame_dict[file_name] = file.shape[0]    
 
