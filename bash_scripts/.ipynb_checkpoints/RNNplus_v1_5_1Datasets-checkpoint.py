@@ -337,7 +337,7 @@ def main(datasetpath, modeltype, isLRS, isCMF):
         timestep = int(file.split('.')[2].split('=')[-1])
         batchsize_10x = int(file.split('.')[1].split('=')[-1])
         hyperparams['batchSize'] = 50 if batchsize_10x%50 == 0 else 20
-        filename = f"{prefix}_{hyperparams['batchSize']}_{timestep}"
+        filename = f"{prefix}_{batchsize_10x}_{timestep}"
         print("+++ Batch Size: ", hyperparams['batchSize'])
     print('Filename: ', filename)
     
