@@ -35,7 +35,6 @@ for model in "${models_array[@]}"; do
 			if [ "${LRSoption}" == "true" ]; then sLRS='wLRS'; else sLRS='wtLRS'; fi;
 			if [ "${CMFoption}" == "true" ]; then sCMF='wCMF'; else sCMF='wtCMF'; fi;
 			prefix="${model,,}""_""${sLRS}""_""${sCMF}""_tf";
-			echo "Prefix = $prefix"
 			for file in "${files_array[@]}"; do
 				if [ "${ISMOOREDATA}" == "true" ]; then                
 					ni_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 2 | cut -d '=' -f 2);
@@ -43,8 +42,7 @@ for model in "${models_array[@]}"; do
 					mc_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 4 | cut -d '=' -f 2);
 					timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 5 | cut -d 's' -f 2);
 					filename="$prefix""_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
-				else
-					echo "$file"                
+				else             
 					bs_no=$(echo $file | cut -d '/' -f 5 | cut -d '.' -f 2 | cut -d '=' -f 2);
 					timestep_no=$(echo $file | cut -d '/' -f 5 | cut -d '.' -f 3 | cut -d '=' -f 2);
 					filename="$prefix""_""$bs_no""_""$timestep_no";
