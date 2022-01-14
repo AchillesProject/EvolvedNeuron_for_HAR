@@ -23,7 +23,7 @@ for seq_no in seq_no_arr:
             for frame in range(int(v/seq_no)*seq_no):
                 if frameset.shape[0] == 0:
                     frameset = file[frame].reshape(file.shape[1], 1, file.shape[2])
-                else:
+                else:|
                     frameset = np.concatenate((frameset, file[frame].reshape(file.shape[1], 1, file.shape[2])), axis=1)
                     if (frameset.shape[1]) % seq_no == 0:
                         if fileset.shape[0] == 0:
