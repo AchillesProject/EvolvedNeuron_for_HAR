@@ -1,0 +1,8 @@
+Items,RNN_plus_v1_3_5_30_128_9_40
+dataset_no,RNN_plus_v1_3_5_30_128_9_40
+dataset_name,../Version9.128timesteps/seqnetdata.ni=3.no=5.mc=30.numTimeSteps128.version9.40.csv
+traintime_avg (ms):,28.38981
+rnnplus_avg,0.49225
+olstm_avg,0.49916
+delta,-0.00691
+isbetter,same

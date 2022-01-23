@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-readonly CORE_IDLE_THRESHOLD=75;
+readonly CORE_IDLE_THRESHOLD=90;
 readonly CORE_USED_THRESHOLD=25;
 readonly TOP_LOOP_NUMBER=3;
 readonly TOP_DELAY_NUMBER=2;
 readonly SLEEP_COUNT=0.1; #in second
 files_array=();
-cpus_array=(8 9 10 11 12 13 14 15);
+cpus_array=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31);
 cpus_array_length=${#cpus_array[@]};
 cpus_assigned_array=();
 cpu_index=0;
@@ -30,13 +30,12 @@ for file in "${files_array[@]}"; do
     no_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 3 | cut -d '=' -f 2);
     mc_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 4 | cut -d '=' -f 2);
     timestep_no=$(echo $file | cut -d '/' -f 6 | cut -d '.' -f 5 | cut -d 's' -f 2);
-    filename="oLSTM_wtLSR_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
+    filename="rnnp_wtCMF_tf_v1_""$ni_no""_""$no_no""_""$mc_no""_""$timestep_no";
     flag=0;
     while : 
     do
         cpu=${cpus_array[$cpu_index]};
-        cpu_str="Cpu$((cpu + 1))"
-        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "$cpu_str" | awk '{print $3}' | cut -f 1 -d '.');
+        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu)) " | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
         readarray -t core_idle_lines <<< "$core_idle_values"
 
         total=0;
@@ -71,7 +70,7 @@ for file in "${files_array[@]}"; do
 
         if [[ "$flag" -eq "1" ]]; then
             `taskset -c "$cpu"  python "$pythonscript" "$file" &>"$log_dir" &!`;
-            echo "Assigning $cpu_str to file number $filename";
+            echo "Assigning Cpu$((cpu)) to file $filename";
             break
         fi
     done
@@ -79,11 +78,13 @@ for file in "${files_array[@]}"; do
 done
 
 # Check if all the processes has finished
-idlecores=1;
+idlecores=0;
+cpu_index=0;
+
 while : 
 do
     cpu=${cpus_array[$cpu_index]};
-    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "$cpu_str" | awk '{print $3}' | cut -f 1 -d '.');
+    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu)) " | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
     readarray -t core_idle_lines <<< "$core_idle_values"
 
     total=0;
@@ -97,14 +98,17 @@ do
         ((total++));
     done
     core_idle=$((100 - sum/total));
+	echo "Cpu$((cpu)) - $core_idle %";
     if [[ $core_idle -gt $CORE_IDLE_THRESHOLD ]]; then
         ((idlecores+=1))
     fi
     if (( $idlecores == $cpus_array_length)); then
+		echo "Break"
         break
     fi
     if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
         cpu_index=0;
+		idlecores=0;
     else
         ((cpu_index += 1));
     fi

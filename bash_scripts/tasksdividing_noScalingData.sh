@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-readonly CORE_IDLE_THRESHOLD=75;
+readonly CORE_IDLE_THRESHOLD=90;
 readonly CORE_USED_THRESHOLD=25;
 readonly TOP_LOOP_NUMBER=3;
 readonly TOP_DELAY_NUMBER=2;
@@ -36,8 +36,7 @@ for file in "${files_array[@]}"; do
     while : 
     do
         cpu=${cpus_array[$cpu_index]};
-        cpu_str="Cpu$((cpu + 1))"
-        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "$cpu_str" | awk '{print $3}' | cut -f 1 -d '.');
+        core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu)) " | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
         readarray -t core_idle_lines <<< "$core_idle_values"
 
         total=0;
@@ -72,7 +71,7 @@ for file in "${files_array[@]}"; do
 
         if [[ "$flag" -eq "1" ]]; then
             `taskset -c "$cpu"  python ./Hyperband_1Datasets_noScalingData.py "$lossmethod" "$file" &>"$log_dir" &!`;
-            echo "Assigning $cpu_str to file number $filename";
+            echo "Assigning Cpu$((cpu)) to file $filename";
             break
         fi
     done
@@ -80,11 +79,13 @@ for file in "${files_array[@]}"; do
 done
 
 # Check if all the processes has finished
-idlecores=1;
+idlecores=0;
+cpu_index=0;
+
 while : 
 do
     cpu=${cpus_array[$cpu_index]};
-    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "$cpu_str" | awk '{print $3}' | cut -f 1 -d '.');
+    core_idle_values=$(top -b -n "$TOP_LOOP_NUMBER" -d "$TOP_DELAY_NUMBER" | grep "Cpu$((cpu)) " | awk -F: '{print $2}' | awk '{print $1}' | cut -f 1 -d '.');
     readarray -t core_idle_lines <<< "$core_idle_values"
 
     total=0;
@@ -102,10 +103,12 @@ do
         ((idlecores+=1))
     fi
     if (( $idlecores == $cpus_array_length)); then
+		echo "Break"
         break
     fi
     if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
         cpu_index=0;
+		idlecores=0;
     else
         ((cpu_index += 1));
     fi

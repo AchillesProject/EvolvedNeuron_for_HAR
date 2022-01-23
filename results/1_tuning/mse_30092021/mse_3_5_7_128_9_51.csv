@@ -1,0 +1,18 @@
+Items,mse_3_5_7_128_9_51
+project,MasterProject
+log_dir,../logs//tuner//mse_3_5_7_128_9_51//mse//MasterProject
+dataset_no,mse_3_5_7_128_9_51
+objectives,"val_loss, min"
+af_LSTM,softsign
+raf_LSTM,sigmoid
+af_dense,softsign
+optimizer,adam
+learning_rate,0.001
+lm_LSTM,mse
+tuner/epochs,8
+tuner/trial_id,f47a92807d3e3541991f7fa64ff85f4b
+tuned_score,0.39546
+loss,0.43864
+validation_accuracy,0.54895
+prediction_accuracy,0.74427
+training_time (ms),692.36371

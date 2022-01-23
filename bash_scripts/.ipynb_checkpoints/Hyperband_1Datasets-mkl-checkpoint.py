@@ -174,4 +174,5 @@ if __name__=="__main__":
         datasetpath = sys.argv[2]
     else:
         print("Don't have sufficient arguments.")
+>>>>>>> f449c52529ddd1fe388c35ad5f6075054aa9a0b6
     main(datasetpath, lossmethod)

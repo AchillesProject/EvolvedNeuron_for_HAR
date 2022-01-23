@@ -1,47 +1,18 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Conv2D, LSTM, MaxPooling2D,AveragePooling2D,GlobalMaxPooling2D, GlobalAveragePooling2D, Flatten, Dropout, Reshape, BatchNormalization, ReLU
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.optimizers import Adam, SGD
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.python.util.tf_export import keras_export
-from tensorflow.keras.backend import eval
-
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler
-
 import tensorboard
-import keras
-
-from functools import partial
-from matplotlib import rc, style
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pylab import rcParams
-import pandas as pd #pd.plotting.register_matplotlib_converters
+import pandas as pd
 import numpy as np
-from scipy import stats
-
 import sys, os, math, time, datetime, re
+from sklearn.model_selection import train_test_split
 
 print("tf: ", tf.__version__)
 print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
-style.use("seaborn")
-pd.plotting.register_matplotlib_converters()
-sns.set(style='whitegrid', palette='muted', font_scale = 1)
-
-# rcParams['figure.figsize'] = 22, 10
-
-RANDOM_SEED = 42
-
-np.random.seed(RANDOM_SEED)
-tf.random.set_seed(RANDOM_SEED)
 tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(1)
-tf.config.set_visible_devices([], 'GPU')
+tf.autograph.set_verbosity(0)
+# tf.config.set_visible_devices([], 'GPU')
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 tf.keras.backend.set_floatx('float64')
 
@@ -155,43 +126,197 @@ class RNN_plus_v1_cell(tf.keras.layers.Layer):
         new_state = [output] if tf.nest.is_nested(states) else output
         return output, new_state
 
-def rnn_plus_model(timestep, noInput, noOutput, batchSize):
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Input(shape=(timestep, noInput), name='Input_layer'))
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=noInput+noOutput), unroll=False, name='RNNp_layer'))
-    model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
-                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
-    model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
-    return model
-
-def rnn_model(timestep, noInput, noOutput, batchSize):
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))
-    model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=noInput+noOutput), name='SimpleRNN_layer', stateful=False))
-    model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
-                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_rnn")
-    model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
-    return model
+class RNN_plus_models():
+    def __init__(self, timestep, noInput, noOutput, batchSize, isLRS=False, isCMF=False):
+        self.timestep = timestep
+        self.noInput = noInput
+        self.noOutput = noOutput
+        self.batchSize = batchSize
+        self.isLRS = isLRS
+        self.isCMF = isCMF
     
-def lstm_model(timestep, noInput, noOutput, batchSize):
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Input(shape=(timestep, noInput),name='Input_layer'))
-    model.add(tf.keras.layers.LSTM(units=noInput+noOutput, 
-                   activation='tanh',
-                   recurrent_activation='sigmoid',
-                   unroll =False,
-                   use_bias=True,
-                   recurrent_dropout=0.0,
-                   return_sequences=False))
+    def rnn_plus_choose_models(self):
+        if (self.isLRS and self.isCMF):
+            return self.rnn_plus_wLRS_wCMF_model()
+        elif (self.isLRS and not self.isCMF):
+            return self.rnn_plus_wLRS_wtCMF_model()
+        elif (not self.isLRS and self.isCMF):
+            return self.rnn_plus_wtLRS_wCMF_model()
+        else:
+            return self.rnn_plus_wtLRS_wtCMF_model()
+        
+    def rnn_plus_wLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], unroll=False, name='RNNp_layer'))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                            beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
 
-    model.add(tf.keras.layers.Dense(noOutput,'tanh', name='MLP_layer'))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False, name='oAdam_wtLSR')
-    model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
-    return model 
+    def rnn_plus_wLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], unroll=False, name='RNNp_layer'))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                            beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
 
-def main(datasetpath):
+    def rnn_plus_wtLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], unroll=False, name='RNNp_layer'))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
+
+    def rnn_plus_wtLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], unroll=False, name='RNNp_layer'))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
+        
+class RNN_models():
+    def __init__(self, timestep, noInput, noOutput, batchSize, isLRS=False, isCMF=False):
+        self.timestep = timestep
+        self.noInput = noInput
+        self.noOutput = noOutput
+        self.batchSize = batchSize
+        self.isLRS = isLRS
+        self.isCMF = isCMF
+        
+    def rnn_choose_models(self):
+        if (self.isLRS and self.isCMF):
+            return self.rnn_wLRS_wCMF_model()
+        elif (self.isLRS and not self.isCMF):
+            return self.rnn_wLRS_wtCMF_model()
+        elif (not self.isLRS and self.isCMF):
+            return self.rnn_wtLRS_wCMF_model()
+        else:
+            return self.rnn_wtLRS_wtCMF_model()
+        
+    def rnn_wLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], name='SimpleRNN_layer', stateful=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                            beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_rnn")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
+
+    def rnn_wLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], name='SimpleRNN_layer', stateful=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                            beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_rnn")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
+    
+    def rnn_wtLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], name='SimpleRNN_layer', stateful=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
+    
+    def rnn_wtLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.RNN(cell=tf.keras.layers.SimpleRNNCell(units=self.noInput+self.noOutput), input_shape=[self.timestep, self.noInput], name='SimpleRNN_layer', stateful=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
+
+class LSTM_models():
+    def __init__(self, timestep, noInput, noOutput, batchSize, isLRS=False, isCMF=False):
+        self.timestep = timestep
+        self.noInput = noInput
+        self.noOutput = noOutput
+        self.batchSize = batchSize
+        self.isLRS = isLRS
+        self.isCMF = isCMF
+        
+    def lstm_choose_models(self):
+        if (self.isLRS and self.isCMF):
+            return self.lstm_wLRS_wCMF_model()
+        elif (self.isLRS and not self.isCMF):
+            return self.lstm_wLRS_wtCMF_model()
+        elif (not self.isLRS and self.isCMF):
+            return self.lstm_wtLRS_wCMF_model()
+        else:
+            return self.lstm_wtLRS_wtCMF_model()
+        
+    def lstm_wLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.LSTM(units=self.noInput+self.noOutput, input_shape=[self.timestep, self.noInput],
+                       activation='tanh', recurrent_activation='sigmoid', unroll =False, use_bias=True,
+                       recurrent_dropout=0.0, return_sequences=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
+
+    def lstm_wLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.LSTM(units=self.noInput+self.noOutput, input_shape=[self.timestep, self.noInput],
+                       activation='tanh', recurrent_activation='sigmoid', unroll =False, use_bias=True,
+                       recurrent_dropout=0.0, return_sequences=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
+    
+    def lstm_wtLRS_wCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.LSTM(units=self.noInput+self.noOutput, input_shape=[self.timestep, self.noInput],
+                       activation='tanh', recurrent_activation='sigmoid', unroll =False, use_bias=True, 
+                       recurrent_dropout=0.0, return_sequences=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse', metrics=[CustomMetricError(threshold=0.0)], run_eagerly=False)
+        return model
+    
+    def lstm_wtLRS_wtCMF_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.LSTM(units=self.noInput+self.noOutput, input_shape=[self.timestep, self.noInput],
+                       activation='tanh', recurrent_activation='sigmoid', unroll =False, use_bias=True,
+                       recurrent_dropout=0.0, return_sequences=False))
+        model.add(tf.keras.layers.Dense(self.noOutput, activation='tanh', name='MLP_layer'))
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0, name="Adam_wtlrs")
+        model.compile(optimizer=optimizer, loss = 'mse')
+        return model
+
+class models(RNN_models, RNN_plus_models, LSTM_models):
+    def __init__(self,  timestep, noInput, noOutput, batchSize, modeltype='RNN_plus', isLRS=False, isCMF=False):
+        super(models).__init__()
+        self.modeltype = modeltype
+        self.timestep = timestep
+        self.noInput = noInput
+        self.noOutput = noOutput
+        self.batchSize = batchSize
+        self.isLRS = isLRS
+        self.isCMF = isCMF
+    
+    def chooseModels(self):
+        sLRS = 'wLRS' if self.isLRS else 'wtLRS'
+        sCMF = 'wCMF' if self.isCMF else 'wtCMF'
+        prefix = f'{self.modeltype.lower()}_{sLRS}_{sCMF}_tf'
+        print(f'Python script prefix: {prefix}')
+        if self.modeltype == 'LSTM':
+            return self.lstm_choose_models()
+        elif self.modeltype == 'RNN_plus':
+            return self.rnn_plus_choose_models()
+        else:
+            return self.rnn_choose_models()  
+
+def main(datasetpath, modeltype, isLRS, isCMF):
     # Getting data from csv file
     filepath = os.path.join(datasetpath)
     file = filepath.split('/')[-1]
@@ -199,7 +324,10 @@ def main(datasetpath):
     no = int(file.split('.')[2].split('=')[-1])
     mc = int(file.split('.')[3].split('=')[-1])
     timestep = int(file.split('.')[4].split('s')[-1])
-    filename = "{}_{}_{}_{}_{}".format('oLSTM_wtLSR_v1', ni, no, mc, timestep)
+    sLRS = 'wLRS' if isLRS else 'wtLRS'
+    sCMF = 'wCMF' if isCMF else 'wtCMF'
+    prefix = f'{modeltype.lower()}_{sLRS}_{sCMF}_tf'
+    filename = f"{prefix}_{ni}_{no}_{mc}_{timestep}"
     print('Dataset: ', filename)
     with open(filepath, "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
@@ -223,31 +351,29 @@ def main(datasetpath):
             y_val[ i, j ] = fromBit( y_val[ i, j ] )
     
     print('Step 3: Training....')
-    rnn_model = lstm_model(timestep, noIn, noOut, int(hyperparams['batchSize']))
+    model =  models(modeltype=modeltype, timestep=timestep, noInput=noIn, noOutput=noOut, batchSize=int(hyperparams['batchSize']), isLRS=isLRS, isCMF=isCMF).chooseModels()
     count = 0
-    val_performance, train_time, pred_performance = {}, {}, {}
-    for count in range(3): # Run three times
+    train_time, pred_performance = {}, {}
+    for count in range(5): # Run n times
         strt_time = datetime.datetime.now() 
-        training_history_v1 = rnn_model.fit(
-                    x_train, # input
-                    y_train, # output
+        model_history = model.fit(
+                    x_train, y_train,
                     batch_size=int(hyperparams['batchSize']),
                     verbose=1, # Suppress chatty output; use Tensorboard instead
                     epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                     validation_data=(x_val, y_val),
-                    callbacks=[tf.keras.callbacks.EarlyStopping("val_custom_metric_error"), tf.keras.callbacks.TerminateOnNaN(), tf.keras.callbacks.TensorBoard(log_dir=logdir)]
+                    shuffle=True,
+                    use_multiprocessing=False
                 )
         curr_time = datetime.datetime.now()
         train_time[count] = round((curr_time - strt_time).total_seconds(),5)
-
-        val_performance[count] = rnn_model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
-        pred_performance[count] = round(customMetricfn(y_val, rnn_model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
+        pred_performance[count] = round(customMetricfn(y_val, model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))), 5)*100
     
     print('Step 5: Saving result.')
     training_result = {**{'dataset_no': filename},
                        **{'dataset_name': datasetpath},
                        **{'traintime_avg (ms):': np.round(np.average(np.fromiter(train_time.values(), dtype=float)),decimals=5)},
-                       **{'rnnplus_avg': np.round(np.average(np.fromiter(pred_performance.values(), dtype=float)),decimals=5)},
+                       **{'accuracy_avg': np.round(np.average(np.fromiter(pred_performance.values(), dtype=float)),decimals=5)},
                       }
     result_df = (pd.DataFrame.from_dict(training_result, orient='index', columns=[str(training_result['dataset_no'])]))
     result_df.to_csv('../results/{}.csv'.format(filename), index=True, index_label='Items')
@@ -256,11 +382,14 @@ if __name__=="__main__":
     print("No. of arguments passed is ", len(sys.argv))
     for idx, arg in enumerate(sys.argv):
         print("Argument #{} is {}".format(idx, arg))
-    if len(sys.argv) == 2:
-        datasetpath = sys.argv[1]
+    if len(sys.argv) == 5:
+        datasetpath = str(sys.argv[1])
+        modeltype   = str(sys.argv[2])
+        isLRS       = True if str(sys.argv[3]) == 'true' else False
+        isCMF       = True if str(sys.argv[4]) == 'true' else False
     else:
         print("Don't have sufficient arguments.")
     
-    main(datasetpath)
+    main(datasetpath, modeltype, isLRS, isCMF)
     
-    print("Complete ", datasetpath)
+    print(f"Complete {datasetpath} with modeltype={modeltype}, isLRS={isLRS}, and isCMF={isCMF}")

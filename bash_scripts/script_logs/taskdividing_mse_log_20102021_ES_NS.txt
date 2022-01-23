@@ -179,4 +179,5 @@ Assigning Cpu10 to file number mse_3_5_7_128_9_6
 Assigning Cpu11 to file number mse_3_5_7_128_9_7
 Assigning Cpu12 to file number mse_3_5_7_128_9_8
 Assigning Cpu13 to file number mse_3_5_7_128_9_9
+>>>>>>> f449c52529ddd1fe388c35ad5f6075054aa9a0b6
 Finish Hyperparameter Tunning with 180 total file on Tue Oct 19 21:57:00 CEST 2021 (1634673420) in 41090.

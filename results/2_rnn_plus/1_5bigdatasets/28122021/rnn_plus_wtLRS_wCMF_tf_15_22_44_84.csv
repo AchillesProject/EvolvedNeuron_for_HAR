@@ -1,0 +1,5 @@
+Items,rnn_plus_wtLRS_wCMF_tf_15_22_44_84
+dataset_no,rnn_plus_wtLRS_wCMF_tf_15_22_44_84
+dataset_name,../../Datasets/1_5_big_datasets/bigdatasets/seqnetdata.ni=15.no=22.mc=44.numTimeSteps84.60.csv
+traintime_avg (ms):,222.62505
+accuracy_avg,87.2968
