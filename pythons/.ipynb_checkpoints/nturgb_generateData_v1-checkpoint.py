@@ -80,6 +80,7 @@ if __name__ == '__main__':
     
     for seq_no in seq_no_arr:
         for idx, file_name in enumerate(skeleton_files):
+            print(seq_no, file_name)
             nframe, mat = _read_skeleton(file_name, save_skelxyz=True, save_rgbxy=False, save_depthxy=False)
             fileset = np.array([])
             activity = int(file_name.split('.')[-2].split('A')[-1])
