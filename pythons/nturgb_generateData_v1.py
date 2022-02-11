@@ -3,6 +3,7 @@ import os, sys
 import numpy as np
 import csv
 
+SKELETON_DIR = '../../Datasets/5_nturgb+d/nturgb+d_skeletons'
 NPY_DIR = '../../Datasets/5_nturgb+d/nturgb+d_npy/'
 max_frame_count = 300
 max_joints = 25
