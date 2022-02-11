@@ -5,7 +5,7 @@ import csv
 
 NPY_DIR = '../../Datasets/5_nturgb+d/nturgb+d_npy/'
 frame_dict = {}
-seq_no_arr = [20, 30, 40, 50, 60]
+seq_no_arr = [60]
 count = 0
 
 for idx, file_name in enumerate(glob.glob(os.path.join(NPY_DIR, '*.npy'))):
