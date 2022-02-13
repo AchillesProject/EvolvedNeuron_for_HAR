@@ -1,7 +1,7 @@
 import glob
 import os, sys
 import numpy as np
-import csv
+import csv, math
 
 SKELETON_DIR = '../../Datasets/5_nturgb+d/nturgb+d_skeletons'
 NPY_DIR = '../../Datasets/5_nturgb+d/nturgb+d_npy/'
