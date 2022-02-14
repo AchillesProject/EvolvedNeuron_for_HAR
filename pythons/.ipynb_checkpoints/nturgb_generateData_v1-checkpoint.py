@@ -8,14 +8,14 @@ NPY_DIR = '../../Datasets/5_nturgb+d/nturgb+d_npy/'
 max_frame_count = 300
 max_joints = 25
 noIn = 3*max_joints
-noOut = 60
+noOut = 60-10
 seq_no_arr = [20, 30, 40, 50, 60]
 
 def _read_skeleton(file_path, save_skelxyz=True, save_rgbxy=True, save_depthxy=True):
     f = open(file_path, 'r')
     datas = f.readlines()
     f.close()
-    max_body = 2
+    max_body = 4
     njoints = 25
 
     # specify the maximum number of the body shown in the sequence, according to the certain sequence, need to pune the 
@@ -63,44 +63,53 @@ def _read_skeleton(file_path, save_skelxyz=True, save_rgbxy=True, save_depthxy=T
                     bodymat[depth_body][frame,joint] = jointinfo[3:5]
                 if save_rgbxy:
                     bodymat[rgb_body][frame,joint] = jointinfo[5:7]
-    # prune the abundant bodys 
-    for each in range(max_body):
-        if each >= max(bodymat['nbodys']):
-            if save_skelxyz:
-                del bodymat['skel_body{}'.format(each)]
-            if save_rgbxy:
-                del bodymat['rgb_body{}'.format(each)]
-            if save_depthxy:
-                del bodymat['depth_body{}'.format(each)]
-    return nframe, bodymat 
+    if len(bodymat['nbodys']) > 0:
+        # prune the abundant bodys 
+        for each in range(max_body):
+            if each >= max(bodymat['nbodys']):
+                if save_skelxyz:
+                    del bodymat['skel_body{}'.format(each)]
+                if save_rgbxy:
+                    del bodymat['rgb_body{}'.format(each)]
+                if save_depthxy:
+                    del bodymat['depth_body{}'.format(each)]
+        nbodies = max(bodymat['nbodys'])
+    else:
+        nbodies = 0
+    return nbodies, nframe, bodymat 
 
 if __name__ == '__main__':
     skeleton_files_mask = os.path.join(SKELETON_DIR, '*.skeleton')
-    skeleton_files = glob.glob(skeleton_files_mask)
-    dataset = np.array([])
-    
+    skeleton_files = sorted(glob.glob(skeleton_files_mask))
+
     for seq_no in seq_no_arr:
+        dataset = np.array([])
         for idx, file_name in enumerate(skeleton_files):
             print(seq_no, file_name)
-            nframe, mat = _read_skeleton(file_name, save_skelxyz=True, save_rgbxy=False, save_depthxy=False)
             fileset = np.array([])
             activity = int(file_name.split('.')[-2].split('A')[-1])
             activity_arr = np.zeros([noOut,1])
-            for i in range(math.ceil(nframe/seq_no)):
-                if (i+1)*seq_no < nframe:
-                    if fileset.shape[0] == 0:
-                        fileset = mat['skel_body0'][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)
-                    else:
-                        fileset = np.concatenate((fileset, mat['skel_body0'][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)), axis=0)
-                else:
-                    diff_no = (i+1)*seq_no - nframe
-                    fileset = np.concatenate((fileset, mat['skel_body0'][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
-            fileset = fileset.reshape(fileset.shape[0],-1)
-            activity_arr[0, int(activity)-1] = 1
-            fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
-            dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
+            if activity < 50:
+                nbodies, nframe, mat = _read_skeleton(file_name, save_skelxyz=True, save_rgbxy=False, save_depthxy=False)
+                if nframe >= seq_no and nbodies > 0:
+                    activity_arr[int(activity)-1] = 1
+                    for nbody in range(nbodies): 
+                        skel_body = f'skel_body{nbody}'
+                        for i in range(math.ceil(nframe/seq_no)):
+                            if (i+1)*seq_no < nframe:
+                                if fileset.shape[0] == 0:
+                                    fileset = mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)
+                                else:
+                                    fileset = np.concatenate((fileset, mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)), axis=0)
+                            else:
+                                diff_no = (i+1)*seq_no - nframe
+                                fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
+                fileset = fileset.reshape(fileset.shape[0],-1)  
+                fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
+                dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
+                print(dataset.shape)
 
-            with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
-                np.savetxt(csvfile, np.array([[noIn, noOut]]),fmt='%d', delimiter=",")
-            with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
-                np.savetxt(csvfile, dataset, fmt='%.4f', delimiter=",")
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
+            np.savetxt(csvfile, np.array([[noIn, noOut]]),fmt='%d', delimiter=",")
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
+            np.savetxt(csvfile, dataset, fmt='%.4f', delimiter=",")
