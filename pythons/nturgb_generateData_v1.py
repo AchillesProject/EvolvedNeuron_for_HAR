@@ -95,15 +95,16 @@ if __name__ == '__main__':
                     activity_arr[int(activity)-1] = 1
                     for nbody in range(nbodies): 
                         skel_body = f'skel_body{nbody}'
-                        for i in range(math.ceil(nframe/seq_no)):
-                            if (i+1)*seq_no < nframe:
-                                if fileset.shape[0] == 0:
-                                    fileset = mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)
+                        if skel_body in mat:
+                            for i in range(math.ceil(nframe/seq_no)):
+                                if (i+1)*seq_no < nframe:
+                                    if fileset.shape[0] == 0:
+                                        fileset = mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)
+                                    else:
+                                        fileset = np.concatenate((fileset, mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)), axis=0)
                                 else:
-                                    fileset = np.concatenate((fileset, mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)), axis=0)
-                            else:
-                                diff_no = (i+1)*seq_no - nframe
-                                fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
+                                    diff_no = (i+1)*seq_no - nframe
+                                    fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
                 fileset = fileset.reshape(fileset.shape[0],-1)  
                 fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
                 dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
