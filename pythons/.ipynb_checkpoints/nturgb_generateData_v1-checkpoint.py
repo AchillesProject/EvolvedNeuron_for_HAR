@@ -113,7 +113,7 @@ if __name__ == '__main__':
                     dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
                     print(dataset.shape)
 
-        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
             np.savetxt(csvfile, np.array([[noIn, noOut]]),fmt='%d', delimiter=",")
-        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
             np.savetxt(csvfile, dataset, fmt='%.4f', delimiter=",")
