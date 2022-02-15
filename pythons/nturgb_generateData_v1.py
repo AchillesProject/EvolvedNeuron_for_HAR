@@ -105,10 +105,10 @@ if __name__ == '__main__':
                                 else:
                                     diff_no = (i+1)*seq_no - nframe
                                     fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
-                fileset = fileset.reshape(fileset.shape[0],-1)  
-                fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
-                dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
-                print(dataset.shape)
+                    fileset = fileset.reshape(fileset.shape[0],-1)  
+                    fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
+                    dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
+                    print(dataset.shape)
 
         with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
             np.savetxt(csvfile, np.array([[noIn, noOut]]),fmt='%d', delimiter=",")
