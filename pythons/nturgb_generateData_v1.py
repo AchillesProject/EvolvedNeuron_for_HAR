@@ -104,13 +104,20 @@ if __name__ == '__main__':
                                         fileset = np.concatenate((fileset, mat[skel_body][i*seq_no:(i+1)*seq_no].reshape(1, seq_no, -1)), axis=0)
                                 else:
                                     diff_no = (i+1)*seq_no - nframe
+<<<<<<< HEAD
                                     fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
+=======
+                                    if fileset.shape[0] == 0:
+                                        fileset = mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)
+                                    else:      
+                                        fileset = np.concatenate((fileset, mat[skel_body][i*seq_no-diff_no:(i+1)*seq_no-diff_no].reshape(1, seq_no, -1)), axis=0)
+>>>>>>> ab6a5e3f2f0d03a0674bc13213e84593c74630d1
                     fileset = fileset.reshape(fileset.shape[0],-1)  
                     fileset = np.concatenate((fileset, np.tile(activity_arr, fileset.shape[0]).T), axis=1)
                     dataset = fileset if dataset.shape[0] == 0 else np.concatenate((dataset, fileset), axis=0)
                     print(dataset.shape)
 
-        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'w') as csvfile:
             np.savetxt(csvfile, np.array([[noIn, noOut]]),fmt='%d', delimiter=",")
-        with open(f"../../Datasets/5_nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
+        with open(f"../../Datasets/5_nturgb+d/nturgb+d/nturgb+d.ni={noIn}.no={noOut}.ts={seq_no}.csv",'a') as csvfile:
             np.savetxt(csvfile, dataset, fmt='%.4f', delimiter=",")
