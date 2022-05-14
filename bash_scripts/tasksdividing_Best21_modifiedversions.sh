@@ -16,3 +16,7 @@ python_scripts = '../pythons/best21/*.py'
 for file in ($python_scripts); do
     files_array+=($file);
 done
+
+for file in "${files_array[@]}"; do
+    echo $file
+done
