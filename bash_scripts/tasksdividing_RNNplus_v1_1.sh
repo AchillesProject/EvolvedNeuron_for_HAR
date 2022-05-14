@@ -68,9 +68,7 @@ for file in "${files_array[@]}"; do
         if [[ $cpu_index -ge $(($cpus_array_length - 1)) ]]; then
             cpu_index=0;
         else
-            ((cpu_index += 1));
-        fi
-
+            ((cpu_i
         if [[ "$flag" -eq "1" ]]; then
             `taskset -c "$cpu"  python "$pythonscript" "$file" &>"$log_dir" &!`;
             echo "Assigning Cpu$((cpu)) to file $filename";
