@@ -1,6 +1,6 @@
 static trainParams extParams = {
   .batchSize = 4,
-  .numTrainingSteps = 40000,
+  .numTrainingSteps = 320000,
   .beta1 = 0.974833,
   .beta2 = 0.996890,
   .epsilon = 0.003880,
