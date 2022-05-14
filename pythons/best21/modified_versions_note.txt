@@ -7,3 +7,13 @@ best21_v2: Merging multiple tanh functions into 1
 
 best21_v3: Using only 2 recurrent elements instead of three
     ## w_aux[2]*state3 -> w_aux[2]*prev_output
+    
+best21_v4: v1 + v2
+    ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
+    ## w_aux[2]*state3 -> w_aux[2]*state2
+    ## (z - state1)*z -> (z - state0)*z
+
+best21_v5: v1 + v2 + v3
+    ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
+    ## w_aux[2]*state3 -> w_aux[2]*prev_output
+    ## (z - state1)*z -> (z - state0)*z
