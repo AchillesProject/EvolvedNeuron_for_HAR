@@ -37,7 +37,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../../params/params_har.txt") as f:
+with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500

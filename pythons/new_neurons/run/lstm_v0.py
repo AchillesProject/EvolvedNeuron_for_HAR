@@ -37,7 +37,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../../params/params_har.txt") as f:
+with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -110,35 +110,28 @@ def indexOfMax( xs ) :
 #===============MAIN=================
 if __name__ == '__main__':
     print('Step 1: Dividing the training and testing set with ratio 1:1 (50%).')
+    ISMOORE_DATASETS = True
+    noIn, noOut = 3, 6
+    path = '../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
+    fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
+    
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
-        valFile = f'val{file_no}.csv'
-        print(trainFile, valFile)
-        df_train = np.array(pd.read_csv(os.path.join(path, trainFile ), skiprows=1))
-        df_val = np.array(pd.read_csv(os.path.join(path, valFile ), skiprows=1))
+        valFile   = f'val{file_no}.csv'
+        df_train  = np.array(pd.read_csv(os.path.join(path, trainFile), skiprows=1))
+        df_val    = np.array(pd.read_csv(os.path.join(path, valFile), skiprows=1))
 
-        timestep = 40
-        print( "\nTrain and val shapes = ", df_train.shape, df_val.shape)
-
-        with open(os.path.join(path,'wisdm.ni=3.no=6.ts=40.os=40.spit=50.train.csv'), "r") as fp:
-            [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
-
-        print('Step 2: Separating values and labels.')
+        scaler    = StandardScaler()
         x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
-        x_val, y_val = seperateValues(df_val, noIn, noOut, isMoore=ISMOORE_DATASETS)
-        scaler = StandardScaler()
-        x_train = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], timestep, noIn)
-        x_val = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], timestep, noIn)
-        for i in range( y_train.shape[ 0 ] ) :
-            for j in range( y_train.shape[ 1 ] ) :
-                y_train[ i, j ] = fromBit_v0( y_train[ i, j ] )
-
-        for i in range( y_val.shape[ 0 ] ) :
-            for j in range( y_val.shape[ 1 ] ) :
-                y_val[ i, j ] = fromBit_v0( y_val[ i, j ] )
-
-        print("+ Training set:   ", x_train.shape, y_train.shape, x_train.dtype)
-        print("+ Validating set: ", x_val.shape, y_val.shape, x_val.dtype)
+        x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
+        x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
+        x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
+        for i in range( y_train.shape[ 0 ]) :
+            for j in range( y_train.shape[1]) :
+                y_train[i, j] = fromBit_v1(y_train[i,j])
+        for i in range(y_val.shape[0]):
+            for j in range(y_val.shape[ 1 ]):
+                y_val[i, j] = fromBit_v1(y_val[ i, j ])
 
         model = lstm_wLRS_wtCMF_model(noIn, noOut, timestep=timestep)
         model_history = model.fit(
