@@ -1,0 +1,66 @@
+2022-05-16 12:24:34.445121: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-05-16 12:24:34.445179: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2022-05-16 12:24:36.078580: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078642: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078677: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078712: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078747: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcurand.so.10'; dlerror: libcurand.so.10: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078783: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusolver.so.11'; dlerror: libcusolver.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078815: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078848: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.078860: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1835] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2022-05-16 12:25:35.303780: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+tf:  2.6.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+{'batchSize': 4.0, 'numTrainingSteps': 320000.0, 'beta1': 0.974833, 'beta2': 0.99689, 'epsilon': 0.00388, 'decayDurationFactor': 0.979079, 'initialLearningRate': 0.002798, 'learningRateDecay': 0.001025, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'testSize': 0.5, 'noUnits': 81, 'timestep': 40}
+Traceback (most recent call last):
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/nest.py", line 633, in _pack_sequence_as
+    0, is_seq, sequence_fn)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/nest.py", line 601, in _packed_nest_with_indices
+    packed.append(flat[index])
+IndexError: list index out of range
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "../pythons/new_neurons/run/best22_v0.py", line 258, in <module>
+    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
+  File "../pythons/new_neurons/run/best22_v0.py", line 223, in rnn_plus_model
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
+    result = method(self, *args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/sequential.py", line 202, in add
+    layer(x)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/layers/recurrent.py", line 659, in __call__
+    return super(RNN, self).__call__(inputs, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 977, in __call__
+    input_list)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 1115, in _functional_construction_call
+    inputs, input_masks, args, kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 848, in _keras_tensor_symbolic_call
+    return self._infer_output_signature(inputs, args, kwargs, input_masks)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 888, in _infer_output_signature
+    outputs = call_fn(inputs, *args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/layers/recurrent.py", line 803, in call
+    zero_output_for_mask=self.zero_output_for_mask)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/dispatch.py", line 206, in wrapper
+    return target(*args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/backend.py", line 4502, in rnn
+    **while_loop_kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/ops/control_flow_ops.py", line 2738, in while_loop
+    back_prop=back_prop)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/ops/while_v2.py", line 223, in while_loop
+    acd_record_initial_resource_uses=stateful_parallelism)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/framework/func_graph.py", line 1007, in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/ops/while_v2.py", line 200, in wrapped_body
+    outputs = body(*_pack_sequence_as(orig_loop_vars, args))
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/backend.py", line 4496, in _step
+    new_states = tf.nest.pack_sequence_as(initial_states, flat_new_state)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/nest.py", line 757, in pack_sequence_as
+    return _pack_sequence_as(structure, flat_sequence, expand_composites)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/nest.py", line 642, in _pack_sequence_as
+    (len(flat_structure), len(flat_sequence), structure, flat_sequence))
+ValueError: Could not pack sequence. Structure had 5 elements, but flat_sequence had 3 elements.  Structure: [<tf.Tensor 'RNNp_layer/zeros:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/zeros_1:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/zeros_2:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/zeros_3:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/zeros_4:0' shape=(None, 81) dtype=float32>], flat_sequence: [<tf.Tensor 'RNNp_layer/while/rnn_plus_v1_cell/sub:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/while/rnn_plus_v1_cell/MatMul_1:0' shape=(None, 81) dtype=float32>, <tf.Tensor 'RNNp_layer/while/rnn_plus_v1_cell/clip_by_value:0' shape=(None, 81) dtype=float32>].
