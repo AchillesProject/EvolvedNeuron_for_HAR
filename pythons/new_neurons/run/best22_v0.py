@@ -232,7 +232,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
 if __name__ == '__main__':
     ISMOORE_DATASETS = True
     noIn, noOut = 3, 6
-    path = '../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
+    path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     # logdir = f"./logs/scalars/wisdm"
     # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
