@@ -149,7 +149,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         self.dropout = min(1., max(0., dropout))
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
-        self.state_size = [self.units, self.units, self.units, self.units, self.units]
+        self.state_size = [self.units, self.units, self.units]
         self.output_size = self.units
         self.use_bias = True
     

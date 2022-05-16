@@ -149,7 +149,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         self.dropout = min(1., max(0., dropout))
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
-        self.state_size = [self.units, self.units, self.units, self.units, self.units]
+        self.state_size = [self.units, self.units, self.units]
         self.output_size = self.units
         self.use_bias = True
     
@@ -166,7 +166,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         w_in_0 = self.kernel
 
-        w_op0, w_op2 = tf.split(self.recurrent_kernel, num_or_size_splits=2, axis=1)
+        w_op0, w_op1 = tf.split(self.recurrent_kernel, num_or_size_splits=2, axis=1)
         w_op0 = tf.linalg.set_diag(w_op0, np.zeros((self.units,), dtype=int))
         w_op1 = tf.linalg.set_diag(w_op1, np.zeros((self.units,), dtype=int))
         
