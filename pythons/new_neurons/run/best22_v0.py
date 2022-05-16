@@ -37,7 +37,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../params/params_har.txt") as f:
+with open("../../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -149,7 +149,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         self.dropout = min(1., max(0., dropout))
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
-        self.state_size = [self.units, self.units, self.units, self.units, self.units]
+        self.state_size = [self.units, self.units, self.units]
         self.output_size = self.units
         self.use_bias = True
     
@@ -227,47 +227,3 @@ def rnn_plus_model(noInput, noOutput, timestep):
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
     model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
     return model
-
-#===============MAIN=================
-if __name__ == '__main__':
-    ISMOORE_DATASETS = True
-    noIn, noOut = 3, 6
-    path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
-    fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-    # logdir = f"./logs/scalars/wisdm"
-    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    # print(hyperparams)
-    for file_no in range(8):
-        trainFile = f'train{file_no}.csv'
-        valFile   = f'val{file_no}.csv'
-        df_train  = np.array(pd.read_csv(os.path.join(path, trainFile), skiprows=1))
-        df_val    = np.array(pd.read_csv(os.path.join(path, valFile), skiprows=1))
-
-        scaler    = StandardScaler()
-        x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
-        x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
-        x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
-        x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-        for i in range( y_train.shape[ 0 ]) :
-            for j in range( y_train.shape[1]) :
-                y_train[i, j] = fromBit_v1(y_train[i,j])
-        for i in range(y_val.shape[0]):
-            for j in range(y_val.shape[ 1 ]):
-                y_val[i, j] = fromBit_v1(y_val[ i, j ])
-
-        model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
-        model_history = model.fit(
-                            x_train, y_train,
-                            batch_size=int(hyperparams['batchSize']),
-                            verbose=1, # Suppress chatty output; use Tensorboard instead
-                            epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
-                            validation_data=(x_val, y_val),
-                            shuffle=True,
-                            use_multiprocessing=False,
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                        )
-        y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
-        val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
-        print(f"{valFile} val_performance = {val_performance}")
-        print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
