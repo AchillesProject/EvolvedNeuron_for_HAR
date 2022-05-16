@@ -37,7 +37,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../params/params_har.txt") as f:
+with open("../../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -127,7 +127,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_0_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -137,7 +137,7 @@ class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_2_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_0_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -189,8 +189,8 @@ class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0))) #remove 2 tanh
-        z2 = tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3]))) #remove 2 tanh
+        z1 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3])))))
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
         output = prev_output - (z - state1)*z
@@ -238,7 +238,7 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_2_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_0_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -250,7 +250,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
 if __name__ == '__main__':
     ISMOORE_DATASETS = True
     noIn, noOut = 3, 6
-    path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
+    path = '../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     # logdir = f"./logs/scalars/wisdm"
     # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
