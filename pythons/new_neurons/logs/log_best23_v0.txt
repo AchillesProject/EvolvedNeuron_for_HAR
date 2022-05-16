@@ -1,18 +1,55 @@
-2022-05-16 12:12:20.006280: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
-2022-05-16 12:12:20.006331: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
-2022-05-16 12:12:21.668161: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668240: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668286: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668333: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668379: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcurand.so.10'; dlerror: libcurand.so.10: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668424: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusolver.so.11'; dlerror: libcusolver.so.11: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668469: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668514: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory
-2022-05-16 12:12:21.668529: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1835] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2022-05-16 12:24:34.419623: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-05-16 12:24:34.419676: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2022-05-16 12:24:36.046926: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047005: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047054: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047102: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047151: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcurand.so.10'; dlerror: libcurand.so.10: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047198: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusolver.so.11'; dlerror: libcusolver.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047250: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047299: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory
+2022-05-16 12:24:36.047312: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1835] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
+2022-05-16 12:25:22.279766: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
 tf:  2.6.0
 /home/chau/workingdir/tf_implementations/bash_scripts
+{'batchSize': 4.0, 'numTrainingSteps': 320000.0, 'beta1': 0.974833, 'beta2': 0.99689, 'epsilon': 0.00388, 'decayDurationFactor': 0.979079, 'initialLearningRate': 0.002798, 'learningRateDecay': 0.001025, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'testSize': 0.5, 'noUnits': 81, 'timestep': 40}
 Traceback (most recent call last):
-  File "../pythons/new_neurons/run/best23_v0.py", line 40, in <module>
-    with open("../../../params/params_har.txt") as f:
-FileNotFoundError: [Errno 2] No such file or directory: '../../../params/params_har.txt'
+  File "../pythons/new_neurons/run/best23_v0.py", line 263, in <module>
+    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
+  File "../pythons/new_neurons/run/best23_v0.py", line 228, in rnn_plus_model
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
+    result = method(self, *args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/sequential.py", line 202, in add
+    layer(x)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/layers/recurrent.py", line 659, in __call__
+    return super(RNN, self).__call__(inputs, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 977, in __call__
+    input_list)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 1115, in _functional_construction_call
+    inputs, input_masks, args, kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 848, in _keras_tensor_symbolic_call
+    return self._infer_output_signature(inputs, args, kwargs, input_masks)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 888, in _infer_output_signature
+    outputs = call_fn(inputs, *args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/layers/recurrent.py", line 803, in call
+    zero_output_for_mask=self.zero_output_for_mask)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/util/dispatch.py", line 206, in wrapper
+    return target(*args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/backend.py", line 4355, in rnn
+    input_time_zero, tuple(initial_states) + tuple(constants))
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/layers/recurrent.py", line 789, in step
+    output, new_states = cell_call_fn(inputs, states, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/keras/engine/base_layer.py", line 1037, in __call__
+    outputs = call_fn(inputs, *args, **kwargs)
+  File "/home/anaconda3/lib/python3.7/site-packages/tensorflow/python/autograph/impl/api.py", line 695, in wrapper
+    raise e.ag_error_metadata.to_exception(e)
+UnboundLocalError: in user code:
+
+    ../pythons/new_neurons/run/best23_v0.py:171 call  *
+        w_op1 = tf.linalg.set_diag(w_op1, np.zeros((self.units,), dtype=int))
+
+    UnboundLocalError: local variable 'w_op1' referenced before assignment
+
