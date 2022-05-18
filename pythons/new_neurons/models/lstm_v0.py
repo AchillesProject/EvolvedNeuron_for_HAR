@@ -112,7 +112,7 @@ if __name__ == '__main__':
     print('Step 1: Dividing the training and testing set with ratio 1:1 (50%).')
     ISMOORE_DATASETS = True
     noIn, noOut = 3, 6
-    path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
+    path = '../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     
     for file_no in range(8):
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                             validation_data=(x_val, y_val),
                             shuffle=True,
                             use_multiprocessing=False,
-                            # callbacks=[tensorboard_callback]
+                            callbacks=[tensorboard_callback]
                         )
         y_pred = model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))
 
