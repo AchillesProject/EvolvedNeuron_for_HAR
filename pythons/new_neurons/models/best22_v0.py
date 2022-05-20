@@ -169,8 +169,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         w_in_0 = self.kernel
 
-        w_op0 = tf.linalg.set_diag(self.recurrent_kernel, np.float64))
-        w_op2 = tf.linalg.set_diag(w_op2, np.zeros((self.units,), dtype=int))
+        w_op0 = tf.linalg.set_diag(self.recurrent_kernel, np.zeros((self.units,), dtype=np.float64))
         
         inputs_0 = tf.keras.backend.dot(inputs, w_in_0)
         if self.bias is not None:
