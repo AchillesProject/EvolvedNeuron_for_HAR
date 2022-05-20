@@ -143,7 +143,7 @@ if __name__ == '__main__':
                             validation_data=(x_val, y_val),
                             shuffle=True,
                             use_multiprocessing=False,
-                            callbacks=[tensorboard_callback]
+                            # callbacks=[tensorboard_callback]
                         )
         y_pred = model.predict(x_val, verbose=1, batch_size=int(hyperparams['batchSize']))
 
