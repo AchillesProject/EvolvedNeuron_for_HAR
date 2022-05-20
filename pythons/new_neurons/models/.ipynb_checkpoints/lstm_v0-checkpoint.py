@@ -45,6 +45,8 @@ hyperparams['noUnits'] = 81
 hyperparams['timestep'] = 40
 print(hyperparams)
 
+tf.keras.backend.set_floatx('float64')
+
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
     for i in range(data.shape[0]):
@@ -114,13 +116,14 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
+    print(tf.keras.backend.floatx())
     
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
         df_train  = np.array(pd.read_csv(os.path.join(path, trainFile), skiprows=1))
         df_val    = np.array(pd.read_csv(os.path.join(path, valFile), skiprows=1))
-
+        
         scaler    = StandardScaler()
         x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
         x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
