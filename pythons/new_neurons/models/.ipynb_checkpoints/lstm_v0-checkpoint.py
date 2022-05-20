@@ -78,9 +78,9 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
         self.lr = self.initialLearningRate
     
     def __call__(self, step):
-        self.step = tf.cast(step, tf.float32)
+        self.step = tf.cast(step, tf.float64)
         self.lr = tf.cond(self.step > self.T, 
-                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=tf.float32),
+                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=tf.float64),
                            lambda: self.initialLearningRate * (1.0 - (1.0 - self.learningRateDecay) * self.step / self.T)
                           )
         return self.lr
@@ -89,7 +89,7 @@ def lstm_wLRS_wtCMF_model(noInput, noOutput, timestep):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.LSTM(units=hyperparams['noUnits'], input_shape=[timestep, noInput],
                    activation='tanh', recurrent_activation='sigmoid', unroll=False, use_bias=True,
-                   recurrent_dropout=0.0, return_sequences=False, name='LSTM_layer'))
+                   recurrent_dropout=0.0, return_sequences=False, name='LSTM_layer', dtype=tf.float64))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
