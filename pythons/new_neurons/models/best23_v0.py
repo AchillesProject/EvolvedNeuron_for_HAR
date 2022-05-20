@@ -21,6 +21,7 @@ print("tf: ", tf.__version__)
 # print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
+DTYPE = tf.float64
 RANDOM_SEED = 42
 ISMOORE_DATASETS = True
 timestep = 40
@@ -30,6 +31,8 @@ tf.autograph.set_verbosity(1)
 tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
+tf.keras.backend.set_floatx('float64')
+
 # snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 # path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
 # Debugging with Tensorboard
@@ -37,7 +40,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../params/params_har.txt") as f:
+with open("../../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -155,10 +158,10 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
     
     def build(self, input_shape):
         input_dim = input_shape[-1]
-        self.kernel = self.add_weight(shape=(input_dim, self.units), name='w_input', initializer=self.kernel_initializer, regularizer=None, constraint=None)
-        self.recurrent_kernel = self.add_weight(shape=(self.units, self.units*2), name='w_otherpeeps', initializer=self.recurrent_initializer, regularizer=None, constraint=None)
-        self.aux_kernel  = self.add_weight(shape=(1, self.units), name='w_aux', initializer=self.recurrent_initializer, regularizer=None, constraint=None)
-        self.bias = self.add_weight( shape=(self.units,), name='b', initializer=self.bias_initializer, regularizer=None, constraint=None) if self.use_bias else None
+        self.kernel = self.add_weight(shape=(input_dim, self.units), name='w_input', initializer=self.kernel_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        self.recurrent_kernel = self.add_weight(shape=(self.units, self.units*2), name='w_otherpeeps', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        self.aux_kernel  = self.add_weight(shape=(1, self.units), name='w_aux', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        self.bias = self.add_weight( shape=(self.units,), name='b', initializer=self.bias_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype) if self.use_bias else None
         self.built = True
         
     def call(self, inputs, states, training=None):
@@ -167,8 +170,8 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         w_in_0 = self.kernel
 
         w_op0, w_op1 = tf.split(self.recurrent_kernel, num_or_size_splits=2, axis=1)
-        w_op0 = tf.linalg.set_diag(w_op0, np.zeros((self.units,), dtype=int))
-        w_op1 = tf.linalg.set_diag(w_op1, np.zeros((self.units,), dtype=int))
+        w_op0 = tf.linalg.set_diag(w_op0, np.zeros((self.units,), dtype=np.float64))
+        w_op1 = tf.linalg.set_diag(w_op1, np.zeros((self.units,), dtype=np.float64))
         
         w_aux = self.aux_kernel
         
@@ -204,13 +207,15 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
         self.orthogonalScaleFactor = orthogonalScaleFactor
         self.numTrainingSteps = numTrainingSteps
         self.name = name
-        self.T = tf.constant(self.decayDurationFactor * (self.numTrainingSteps/self.batchSize), dtype=tf.float32, name="T")
+        self.cell_dtype = DTYPE
         self.lr = self.initialLearningRate
+        self.T = tf.constant(self.decayDurationFactor * (self.numTrainingSteps/self.batchSize), dtype=self.cell_dtype, name="T")
+        
     
     def __call__(self, step):
-        self.t = tf.cast(step, tf.float32)
+        self.t = tf.cast(step, self.cell_dtype)
         self.lr = tf.cond(self.t > self.T, 
-                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=tf.float32),
+                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=self.cell_dtype),
                            lambda: self.initialLearningRate - (1.0 - self.learningRateDecay) * self.initialLearningRate * self.t / self.T
                           )
         return self.lr
@@ -225,7 +230,7 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer'))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -242,6 +247,7 @@ if __name__ == '__main__':
     # logdir = f"./logs/scalars/wisdm"
     # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
     # print(hyperparams)
+    print(tf.keras.backend.floatx())
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
