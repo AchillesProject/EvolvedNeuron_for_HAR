@@ -155,7 +155,8 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         self.state_size = [self.units, self.units, self.units]
         self.output_size = self.units
         self.use_bias = True
-    
+        self.cell_dtype = DTYPE
+        
     def build(self, input_shape):
         input_dim = input_shape[-1]
         self.kernel = self.add_weight(shape=(input_dim, self.units), name='w_input', initializer=self.kernel_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
