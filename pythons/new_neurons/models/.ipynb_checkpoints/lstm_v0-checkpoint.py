@@ -30,6 +30,8 @@ tf.autograph.set_verbosity(1)
 tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
+tf.keras.backend.set_floatx('float64')
+
 # snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 # path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
 # Debugging with Tensorboard
