@@ -130,7 +130,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_4_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -140,7 +140,7 @@ class RNN_plus_v1_4_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_4_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_2_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -193,14 +193,13 @@ class RNN_plus_v1_4_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))  #remove 2 tanh
-        z2 = tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state2 + w_aux[3]))) #remove 2 tanh and w_aux[2]*state3 -> w_aux[2]*state2
+        z1 = tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0))) #remove 2 tanh
+        z2 = tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3]))) #remove 2 tanh
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
-        output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
-        f = w_aux[4]*z + op0
+        output = prev_output - (z - state1)*z
 
-        return output, [z, state0, f, state2, output]
+        return output, [z, state0, w_aux[4]*z + op0, state2, output]
     
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
         return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, dtype))
@@ -213,44 +212,50 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         tf.summary.scalar('learning rate', self.model.optimizer.learning_rate.lr, step=epoch)
 
 class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, batchSize, initialLearningRate, learningRateDecay, decayDurationFactor, numTrainingSteps, glorotScaleFactor=0.1, orthogonalScaleFactor=0.1, name=None):
-        self.batchSize = batchSize
-        self.initialLearningRate = initialLearningRate
-        self.learningRateDecay = learningRateDecay
-        self.decayDurationFactor = decayDurationFactor
-        self.glorotScaleFactor = glorotScaleFactor
-        self.orthogonalScaleFactor = orthogonalScaleFactor
-        self.numTrainingSteps = numTrainingSteps
-        self.name = name
-        self.cell_dtype = DTYPE
-        self.lr = self.initialLearningRate
-        self.T = tf.constant(self.decayDurationFactor * (self.numTrainingSteps/self.batchSize), dtype=self.cell_dtype, name="T")
-        
+    def __init__(self, batchSize, initialLearningRate, learningRateDecay, 
+                 decayDurationFactor, numTrainingSteps, name=None):
+        self.name                 = name
+        self.cell_dtype           = DTYPE
+        self.batchSize            = tf.constant(batchSize, dtype=self.cell_dtype, name="bz")
+        self.initialLearningRate  = tf.constant(initialLearningRate, dtype=self.cell_dtype, name="lr0") 
+        self.learningRateDecay    = tf.constant(learningRateDecay, dtype=self.cell_dtype, name="alpha")
+        self.decayDurationFactor  = tf.constant(decayDurationFactor, dtype=self.cell_dtype, name="beta")
+        self.numTrainingSteps     = tf.constant(numTrainingSteps, dtype=self.cell_dtype, name="ortho")
+        self.T                    = tf.constant(self.decayDurationFactor*(self.numTrainingSteps/self.batchSize), 
+                                                dtype=self.cell_dtype, name="T")
+        self.lr                   = tf.Variable(self.initialLearningRate, dtype=self.cell_dtype, name="lr")
     
     def __call__(self, step):
         self.t = tf.cast(step, self.cell_dtype)
         self.lr = tf.cond(self.t > self.T, 
-                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=self.cell_dtype),
-                           lambda: self.initialLearningRate - (1.0 - self.learningRateDecay) * self.initialLearningRate * self.t / self.T
-                          )
+           lambda: self.learningRateDecay * self.initialLearningRate,
+           lambda: self.initialLearningRate -(1.0-self.learningRateDecay)*self.initialLearningRate*self.t/self.T
+          )
         return self.lr
     
     def get_config(self):
         return {
-            "initial_learning_rate": self.initialLearningRate,
-            "decay_rate": self.learningRateDecay,
-            "name": self.name
+            "name":           self.name,
+            "cell_dtype":     self.cell_dtype,
+            "batchSize":      self.batchSize,
+            "initial_lr":     self.initialLearningRate,
+            "decay_rate":     self.learningRateDecay,
+            "decay_duration": self.decayDurationFactor,
+            "training_step":  self.numTrainingSteps,
+            "curr_lr":        self.lr
         }
     
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_4_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_2_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
-    model.add(tf.keras.layers.Dense(noOutput))
+    model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
     model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
+    print(tf.keras.backend.floatx())
+    print(model.summary())
     return model
 
 #===============MAIN=================
@@ -290,8 +295,7 @@ if __name__ == '__main__':
                             validation_data=(x_val, y_val),
                             shuffle=True,
                             use_multiprocessing=False,
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)

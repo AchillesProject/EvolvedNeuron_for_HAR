@@ -10,7 +10,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
+import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +18,7 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-# print("tb: ", tensorboard.__version__)
+print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -33,14 +33,14 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
+snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
 # Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+logdir="logs/fit/rnn_v1_1/" + snapshot
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../params/params_har.txt") as f:
+with open("../../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -213,33 +213,37 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         tf.summary.scalar('learning rate', self.model.optimizer.learning_rate.lr, step=epoch)
 
 class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, batchSize, initialLearningRate, learningRateDecay, decayDurationFactor, numTrainingSteps, glorotScaleFactor=0.1, orthogonalScaleFactor=0.1, name=None):
-        self.batchSize = batchSize
-        self.initialLearningRate = initialLearningRate
-        self.learningRateDecay = learningRateDecay
-        self.decayDurationFactor = decayDurationFactor
-        self.glorotScaleFactor = glorotScaleFactor
-        self.orthogonalScaleFactor = orthogonalScaleFactor
-        self.numTrainingSteps = numTrainingSteps
-        self.name = name
-        self.cell_dtype = DTYPE
-        self.lr = self.initialLearningRate
-        self.T = tf.constant(self.decayDurationFactor * (self.numTrainingSteps/self.batchSize), dtype=self.cell_dtype, name="T")
-        
+    def __init__(self, batchSize, initialLearningRate, learningRateDecay, 
+                 decayDurationFactor, numTrainingSteps, name=None):
+        self.name                 = name
+        self.cell_dtype           = DTYPE
+        self.batchSize            = tf.constant(batchSize, dtype=self.cell_dtype, name="bz")
+        self.initialLearningRate  = tf.constant(initialLearningRate, dtype=self.cell_dtype, name="lr0") 
+        self.learningRateDecay    = tf.constant(learningRateDecay, dtype=self.cell_dtype, name="alpha")
+        self.decayDurationFactor  = tf.constant(decayDurationFactor, dtype=self.cell_dtype, name="beta")
+        self.numTrainingSteps     = tf.constant(numTrainingSteps, dtype=self.cell_dtype, name="ortho")
+        self.T                    = tf.constant(self.decayDurationFactor*(self.numTrainingSteps/self.batchSize), 
+                                                dtype=self.cell_dtype, name="T")
+        self.lr                   = tf.Variable(self.initialLearningRate, dtype=self.cell_dtype, name="lr")
     
     def __call__(self, step):
         self.t = tf.cast(step, self.cell_dtype)
         self.lr = tf.cond(self.t > self.T, 
-                           lambda: tf.constant(self.learningRateDecay * self.initialLearningRate, dtype=self.cell_dtype),
-                           lambda: self.initialLearningRate - (1.0 - self.learningRateDecay) * self.initialLearningRate * self.t / self.T
-                          )
+           lambda: self.learningRateDecay * self.initialLearningRate,
+           lambda: self.initialLearningRate -(1.0-self.learningRateDecay)*self.initialLearningRate*self.t/self.T
+          )
         return self.lr
     
     def get_config(self):
         return {
-            "initial_learning_rate": self.initialLearningRate,
-            "decay_rate": self.learningRateDecay,
-            "name": self.name
+            "name":           self.name,
+            "cell_dtype":     self.cell_dtype,
+            "batchSize":      self.batchSize,
+            "initial_lr":     self.initialLearningRate,
+            "decay_rate":     self.learningRateDecay,
+            "decay_duration": self.decayDurationFactor,
+            "training_step":  self.numTrainingSteps,
+            "curr_lr":        self.lr
         }
     
 def rnn_plus_model(noInput, noOutput, timestep):
@@ -247,10 +251,12 @@ def rnn_plus_model(noInput, noOutput, timestep):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_4_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
-    model.add(tf.keras.layers.Dense(noOutput))
+    model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
     model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
+    print(tf.keras.backend.floatx())
+    print(model.summary())
     return model
 
 #===============MAIN=================
