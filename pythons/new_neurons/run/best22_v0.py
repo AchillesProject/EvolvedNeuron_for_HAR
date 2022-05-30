@@ -40,7 +40,7 @@ tf.keras.backend.set_floatx('float64')
 # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
-with open("../../params/params_har.txt") as f:
+with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
 hyperparams['testSize'] = 0.500
@@ -170,8 +170,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         
         w_in_0 = self.kernel
 
-        w_op0 = tf.linalg.set_diag(self.recurrent_kernel, np.float64))
-        w_op2 = tf.linalg.set_diag(w_op2, np.zeros((self.units,), dtype=int))
+        w_op0 = tf.linalg.set_diag(self.recurrent_kernel, np.zeros((self.units,), dtype=np.float64))
         
         inputs_0 = tf.keras.backend.dot(inputs, w_in_0)
         if self.bias is not None:
