@@ -190,13 +190,12 @@ class RNN_plus_v1_11_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        #remove w_aux
-        z1 = op4*(op3 + inputs_0)  #remove all tanh: tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
-        z2 = (op2 + w_aux[0]) #remove all tanh and (w_aux[2]*state3 or w_aux[2]*prev_output)
+        z1 = op4*(w_aux[0]*op3 + inputs_0)  #remove all tanh: tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = (w_aux[1]*op2 + w_aux[3]) #remove all tanh and (w_aux[2]*state3 or w_aux[2]*prev_output)
         z3 = (inputs_2) #remove 1 tanh
         z  = tf.nn.tanh(srelu(z1 - (z2 + z3))) #add 1 tanh
         output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
-        f = z + op0 #w_aux[4]*z + op0
+        f = w_aux[4]*z + op0
 
         return output, [z, state0, f, state2, output]
     
