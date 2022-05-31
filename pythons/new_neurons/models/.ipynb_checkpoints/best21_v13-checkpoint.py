@@ -179,6 +179,7 @@ class RNN_plus_v1_13_cell(tf.keras.layers.LSTMCell):
         w_aux = self.aux_kernel
         
         inputs_0 = tf.keras.backend.dot(inputs, w_in_0)
+        # inputs_1 = tf.keras.backend.dot(inputs, w_in_1)
         inputs_2 = tf.keras.backend.dot(inputs, w_in_2)
         
         if self.bias is not None:
