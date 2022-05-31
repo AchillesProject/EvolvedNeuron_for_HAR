@@ -140,7 +140,7 @@ class RNN_plus_v1_14_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_10_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_14_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -190,12 +190,13 @@ class RNN_plus_v1_14_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = w_aux[1]*op4*(w_aux[0]*op3 + inputs_0)  #remove all tanh: tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
-        z2 = (w_aux[2]*op2) #remove all tanh and (w_aux[2]*state3 or w_aux[2]*prev_output)
+        #remove w_aux and change op4 to op3 in z1
+        z1 = op3*(op3 + inputs_0)  #remove all tanh: tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = (op2 + w_aux[0]) #remove all tanh and (w_aux[2]*state3 or w_aux[2]*prev_output)
         z3 = (inputs_2) #remove 1 tanh
-        z  = tf.nn.tanh(srelu(z1 - (z2 + z3))) #add 1 tanh
-        output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
-        f = w_aux[4]*z + op0
+        z  = srelu(z1 - (z2 + z3))
+        output = tf.nn.tanh(prev_output - (z - state0)*z) #(z - state1)*z -> (z - state0)*z
+        f = z + op0 #w_aux[4]*z + op0
 
         return output, [z, state0, f, state2, output]
     
