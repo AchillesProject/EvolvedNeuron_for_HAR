@@ -565,7 +565,7 @@ if __name__ == '__main__':
                             epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                             validation_data=(x_val, y_val),
                             shuffle=True,
-                            use_multiprocessing=False,
+                            use_multiprocessing=True,
                             #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
