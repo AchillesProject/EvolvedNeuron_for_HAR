@@ -4,7 +4,7 @@ lstm+_v01: adding srelu with tanh
 lstm+_v02: second previous carry state c_tm2
     ## c, o = self._compute_carry_and_output_fused(z, c_tm1) -> c, o = self._compute_carry_and_output_fused(z, c_tm2)
     
-lstm+_v03: adding srelu with tanh && adding second previous carry state c_tm2
+lstm+_v03: v1 + v2
     ## tanh(x) -> tanh(srelu(x))
     ## c, o = self._compute_carry_and_output_fused(z, c_tm1) -> c, o = self._compute_carry_and_output_fused(z, c_tm2)
     
@@ -33,5 +33,11 @@ lstm+_v09: v4 (include c function)
     ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
     
 lstm+_v10: v6 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v11: v7 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v12: v8 (include c function)
     ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
  

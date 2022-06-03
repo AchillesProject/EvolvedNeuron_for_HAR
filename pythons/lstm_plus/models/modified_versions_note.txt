@@ -34,4 +34,10 @@ lstm+_v09: v4 (include c function)
     
 lstm+_v10: v6 (include c function)
     ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v11: v7 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v12: v8 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
  
