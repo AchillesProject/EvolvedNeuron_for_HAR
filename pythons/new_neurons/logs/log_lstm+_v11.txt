@@ -1,0 +1,4 @@
+  File "../pythons/new_neurons/run/lstm+_v11.py", line 375
+    o = self.recurrent_activation(z3)
+    ^
+SyntaxError: invalid syntax

@@ -360,8 +360,8 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
             x_i + tf.keras.backend.dot(h_tm1_i, self.recurrent_kernel[:, :self.units]))
         f = self.recurrent_activation(x_f + tf.keras.backend.dot(
             h_tm1_f, self.recurrent_kernel[:, self.units:self.units * 2]))
-        c = f * c_tm1 + i * self.activation(x_c + tf.keras.backend.dot(
-            h_tm1_c, self.recurrent_kernel[:, self.units * 2:self.units * 3]))
+        c = f * c_tm1 + i * self.activation(srelu(x_c + tf.keras.backend.dot(
+            h_tm1_c, self.recurrent_kernel[:, self.units * 2:self.units * 3])))
         o = self.recurrent_activation(
             x_o + tf.keras.backend.dot(h_tm1_o, self.recurrent_kernel[:, self.units * 3:]))
         return c, o
@@ -371,13 +371,14 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
         z0, z1, z2, z3 = z
         i = self.recurrent_activation(z0)
         f = self.recurrent_activation(z1)
-        c = f * c_tm1 + i * self.activation(z2)
+        c = (f * c_tm1 + i * self.activation(srelu(z2))) * c_tm1 # making the quaratic function
         o = self.recurrent_activation(z3)
         return c, o
 
     def call(self, inputs, states, training=None):
         h_tm1 = states[0]  # previous memory state
         c_tm1 = states[1]  # previous carry state
+        c_tm2 = states[2]  # previous carry state
 
         dp_mask = self.get_dropout_mask_for_cell(inputs, training, count=4)
         rec_dp_mask = self.get_recurrent_dropout_mask_for_cell(
@@ -420,7 +421,7 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
                 h_tm1_o = h_tm1
             x = (x_i, x_f, x_c, x_o)
             h_tm1 = (h_tm1_i, h_tm1_f, h_tm1_c, h_tm1_o)
-            c, o = self._compute_carry_and_output(x, h_tm1, c_tm1)
+            c, o = self._compute_carry_and_output(x, h_tm1, c_tm2)
         else:
             if 0. < self.dropout < 1.:
                 inputs = inputs * dp_mask[0]
@@ -430,10 +431,10 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
                 z = tf.keras.backend.bias_add(z, self.bias)
 
             z = tf.split(z, num_or_size_splits=4, axis=1)
-            c, o = self._compute_carry_and_output_fused(z, c_tm1)
+            c, o = self._compute_carry_and_output_fused(z, c_tm2)
 
-        h = o * self.activation(self.activation(self.activation(c)))
-        return h, [h, c]
+        h = o * self.activation(self.activation(self.activation(srelu(c))))
+        return h, [h, c, c_tm1]
 
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
         return list(_generate_zero_filled_state_for_cell(

@@ -360,8 +360,8 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
             x_i + tf.keras.backend.dot(h_tm1_i, self.recurrent_kernel[:, :self.units]))
         f = self.recurrent_activation(x_f + tf.keras.backend.dot(
             h_tm1_f, self.recurrent_kernel[:, self.units:self.units * 2]))
-        c = f * c_tm1 + i * self.activation(x_c + tf.keras.backend.dot(
-            h_tm1_c, self.recurrent_kernel[:, self.units * 2:self.units * 3]))
+        c = f * c_tm1 + i * self.activation(self.activation(self.activation(x_c + tf.keras.backend.dot(
+            h_tm1_c, self.recurrent_kernel[:, self.units * 2:self.units * 3]))))
         o = self.recurrent_activation(
             x_o + tf.keras.backend.dot(h_tm1_o, self.recurrent_kernel[:, self.units * 3:]))
         return c, o
@@ -371,7 +371,7 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
         z0, z1, z2, z3 = z
         i = self.recurrent_activation(z0)
         f = self.recurrent_activation(z1)
-        c = f * c_tm1 + i * self.activation(z2)
+        c = (f * c_tm1 + i * self.activation(self.activation(self.activation(z2)))) * c_tm1 # making the quaratic function
         o = self.recurrent_activation(z3)
         return c, o
 
