@@ -371,7 +371,7 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
         z0, z1, z2, z3 = z
         i = self.recurrent_activation(z0)
         f = self.recurrent_activation(z1)
-        c = f * c_tm1 + i * self.activation(z2)
+        c = (f * c_tm1 + i * self.activation(z2)) * c_tm1 # making the quaratic function
         o = self.recurrent_activation(z3)
         return c, o
 

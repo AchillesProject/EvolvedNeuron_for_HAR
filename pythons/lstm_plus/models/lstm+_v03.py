@@ -421,7 +421,7 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
                 h_tm1_o = h_tm1
             x = (x_i, x_f, x_c, x_o)
             h_tm1 = (h_tm1_i, h_tm1_f, h_tm1_c, h_tm1_o)
-            c, o = self._compute_carry_and_output(x, h_tm1, c_tm1)
+            c, o = self._compute_carry_and_output(x, h_tm1, c_tm2)
         else:
             if 0. < self.dropout < 1.:
                 inputs = inputs * dp_mask[0]
