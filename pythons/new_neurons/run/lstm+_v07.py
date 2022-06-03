@@ -195,7 +195,7 @@ class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
         return output, [z, state0, w_aux[4]*z + op0, state2, output]
     
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
-        return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, dtype))
+        return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, self.cell_dtype))
 
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, epoch, logs=None):
@@ -437,7 +437,7 @@ class LSTMCell_modified(tf.keras.layers.LSTMCell):
 
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
         return list(_generate_zero_filled_state_for_cell(
-            self, inputs, batch_size, dtype))
+            self, inputs, batch_size, DTYPE))
 
 
 class LSTM_modified(tf.keras.layers.RNN):
