@@ -1,3 +1,0 @@
-lstm+_v01: adding srelu with tanh
-    ## tanh(x) -> tanh(srelu(x))
- 

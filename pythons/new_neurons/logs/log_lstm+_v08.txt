@@ -1,0 +1,53 @@
+2022-06-03 17:09:35.815841: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+tf:  2.8.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+{'batchSize': 4.0, 'numTrainingSteps': 320000.0, 'beta1': 0.974833, 'beta2': 0.99689, 'epsilon': 0.00388, 'decayDurationFactor': 0.979079, 'initialLearningRate': 0.002798, 'learningRateDecay': 0.001025, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'testSize': 0.5, 'noUnits': 81, 'timestep': 40}
+float64
+Traceback (most recent call last):
+  File "../pythons/new_neurons/run/lstm+_v08.py", line 560, in <module>
+    model = lstm_modified_model(noIn, noOut, timestep=hyperparams['timestep'])
+  File "../pythons/new_neurons/run/lstm+_v08.py", line 520, in lstm_modified_model
+    model.add(LSTM_modified(units=int(hyperparams['noUnits']), input_shape=[timestep, noInput],
+  File "/usr/local/lib/python3.8/dist-packages/tensorflow/python/training/tracking/base.py", line 629, in _method_wrapper
+    result = method(self, *args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/keras/utils/traceback_utils.py", line 67, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/usr/local/lib/python3.8/dist-packages/tensorflow/python/autograph/impl/api.py", line 692, in wrapper
+    raise e.ag_error_metadata.to_exception(e)
+tensorflow.python.autograph.impl.api.StagingError: Exception encountered when calling layer "LSTM_layer" (type LSTM_modified).
+
+in user code:
+
+    File "../pythons/new_neurons/run/lstm+_v08.py", line 513, in call  *
+        inputs, mask=mask, training=training, initial_state=initial_state)
+    File "/usr/local/lib/python3.8/dist-packages/keras/layers/recurrent.py", line 816, in call  **
+        last_output, outputs, states = backend.rnn(
+    File "/usr/local/lib/python3.8/dist-packages/keras/backend.py", line 4598, in rnn
+        output_time_zero, _ = step_function(
+    File "/usr/local/lib/python3.8/dist-packages/keras/layers/recurrent.py", line 812, in step
+        output, new_states = cell_call_fn(inputs, states, **kwargs)
+    File "/usr/local/lib/python3.8/dist-packages/keras/utils/traceback_utils.py", line 67, in error_handler
+        raise e.with_traceback(filtered_tb) from None
+
+    StagingError: Exception encountered when calling layer "lstm_cell_modified" (type LSTMCell_modified).
+    
+    in user code:
+    
+        File "../pythons/new_neurons/run/lstm+_v08.py", line 381, in call  *
+            c_tm2 = states[2]  # previous carry state
+    
+        IndexError: tuple index out of range
+    
+    
+    Call arguments received:
+      • inputs=tf.Tensor(shape=(None, 3), dtype=float64)
+      • states=('tf.Tensor(shape=(None, 81), dtype=float64)', 'tf.Tensor(shape=(None, 81), dtype=float64)')
+      • training=None
+
+
+Call arguments received:
+  • inputs=tf.Tensor(shape=(None, 40, 3), dtype=float64)
+  • mask=None
+  • training=None
+  • initial_state=None
