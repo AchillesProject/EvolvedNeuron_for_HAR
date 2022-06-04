@@ -10,7 +10,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
+import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +18,7 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-# print("tb: ", tensorboard.__version__)
+print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -33,11 +33,11 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
+snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
 # Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+logdir="logs/fit/rnn_v1_1/" + snapshot
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 # tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
 with open("../params/params_har.txt") as f:
@@ -130,7 +130,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_22_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_4_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -140,7 +140,7 @@ class RNN_plus_v1_22_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_22_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_4_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -193,8 +193,8 @@ class RNN_plus_v1_22_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(op4*tf.nn.tanh(w_aux[0]*op3 + inputs_0))  #remove 2 tanh & remove (srelu)
-        z2 = tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state0 + w_aux[3]) #remove 2 tanh and w_aux[2]*state3 -> w_aux[2]*state0 & remove (srelu)
+        z1 = tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))  #remove 2 tanh
+        z2 = tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state2 + w_aux[3]))) #remove 2 tanh and w_aux[2]*state3 -> w_aux[2]*state2
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
         output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
@@ -248,9 +248,8 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
-    
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_22_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_4_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -297,7 +296,8 @@ if __name__ == '__main__':
                             validation_data=(x_val, y_val),
                             shuffle=True,
                             use_multiprocessing=False,
-                            #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
