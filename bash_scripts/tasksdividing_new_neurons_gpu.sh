@@ -24,7 +24,7 @@ for python_script in "${python_scripts[@]}"; do
     python_script_name=$(echo $python_script | cut -d '/' -f 5 | cut -d '.' -f 1);
     python_script_log="../pythons/new_neurons/logs/log_${python_script_name}.txt";
     echo "Running ${python_script_name} script and logging at ${python_script_log}.";
-    `taskset -c "${cpu_index}-$((${cpu_index}+2))" python3 "${python_script}" &>"${python_script_log}" &!`;
-    cpu_index=$(($cpu_index+2));
+    `taskset -c "${cpu_index}-$((${cpu_index}+3))" python3 "${python_script}" &>"${python_script_log}" &!`;
+    cpu_index=$(($cpu_index+3));
     echo "${cpu_index}"
 done
