@@ -262,51 +262,48 @@ def rnn_plus_model(noInput, noOutput, timestep):
 
 #===============MAIN=================
 if __name__ == '__main__':
-    if len(sys.argv) == 4:
-        dataset_name = sys.argv[1]
-        start_no     = sys.argv[2]
-        range_no     = sys.argv[3]
+    if len(sys.argv) == 3:
+        dataset      = sys.argv[1]
+        file_no   = sys.argv[2]
     else:
         print("Don't have sufficient arguments.")
         sys.exit()
 
     ISMOORE_DATASETS = True
-    path = '..\..\..\..\Datasets\8_publicDatasets\datasets'
-    fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-    for file_no in range(start_no, start_no + range_no):
-        trainFile = f'train{file_no}.csv'
-        valFile   = f'val{file_no}.csv'
-        print(os.path.join(path, dataset_path, trainFile))
-        df_train  = np.array(pd.read_csv(os.path.join(path, trainFile), skiprows=1))
-        df_val    = np.array(pd.read_csv(os.path.join(path, valFile), skiprows=1))
-        
-        with open(os.path.join(path, dataset_path, trainFile), "r") as fp:
-            [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
+    path = '..\..\Datasets\8_publicDatasets\datasets'
+    trainFile = f'train{file_no}.csv'
+    valFile   = f'test{file_no}.csv'
+    print(os.path.join(path, dataset, trainFile))
+    df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
+    df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
-        scaler    = StandardScaler()
-        x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
-        x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
-        x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
-        x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-        for i in range( y_train.shape[ 0 ]) :
-            for j in range( y_train.shape[1]) :
-                y_train[i, j] = fromBit_v1(y_train[i,j])
-        for i in range(y_val.shape[0]):
-            for j in range(y_val.shape[ 1 ]):
-                y_val[i, j] = fromBit_v1(y_val[ i, j ])
+    with open(os.path.join(path, dataset, trainFile), "r") as fp:
+        [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
 
-        model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
-        model_history = model.fit(
-                            x_train, y_train,
-                            batch_size=int(hyperparams['batchSize']),
-                            verbose=1, # Suppress chatty output; use Tensorboard instead
-                            epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
-                            validation_data=(x_val, y_val),
-                            shuffle=True,
-                            use_multiprocessing=False,
-                            callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                        )
-        y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
-        val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
-        print(f"{os.path.join(path, valFile)} val_performance = {val_performance}")
-        print(f"{os.path.join(path, valFile)} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
+    scaler    = StandardScaler()
+    x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
+    x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
+    x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
+    x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
+    for i in range( y_train.shape[ 0 ]) :
+        for j in range( y_train.shape[1]) :
+            y_train[i, j] = fromBit_v1(y_train[i,j])
+    for i in range(y_val.shape[0]):
+        for j in range(y_val.shape[ 1 ]):
+            y_val[i, j] = fromBit_v1(y_val[ i, j ])
+
+    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
+    model_history = model.fit(
+                        x_train, y_train,
+                        batch_size=int(hyperparams['batchSize']),
+                        verbose=0, # Suppress chatty output; use Tensorboard instead
+                        epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
+                        validation_data=(x_val, y_val),
+                        shuffle=True,
+                        use_multiprocessing=False,
+                        callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                    )
+    y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
+    val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
+    print(f"{os.path.join(path, dataset, valFile)} val_performance = {val_performance}")
+    print(f"{os.path.join(path, dataset, valFile)} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
