@@ -157,22 +157,29 @@ best21_v22: v20 + remove extra only srelu(x)
     ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
     ## w_aux[2]*state3 -> w_aux[2]*state0
     ## (z - state1)*z -> (z - state0)*z
-	## srelu(x) -> x
+    ## srelu(x) -> x
 
 best21_v23: v4 + remove tf.nn.tanh(srelu(x))
     ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
     ## w_aux[2]*state3 -> w_aux[2]*state2
     ## (z - state1)*z -> (z - state0)*z
-	## tf.nn.tanh(srelu(x)) -> x
+    ## tf.nn.tanh(srelu(x)) -> x
 	
 best21_v24: v20 + remove extra tf.nn.tanh(srelu(x))
     ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
     ## w_aux[2]*state3 -> w_aux[2]*state0
     ## (z - state1)*z -> (z - state0)*z
-	## tf.nn.tanh(srelu(x)) -> x
+    ## tf.nn.tanh(srelu(x)) -> x
 	
 best21_v25: v4 + remove only (srelu(x))
     ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
     ## w_aux[2]*state3 -> w_aux[2]*state2
     ## (z - state1)*z -> (z - state0)*z
-	## srelu(x) -> x
+    ## srelu(x) -> x
+    
+best21_v26: v24 + adding relu after tanh
+    ## tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(x))) -> tf.nn.tanh(x)
+    ## w_aux[2]*state3 -> w_aux[2]*state0
+    ## (z - state1)*z -> (z - state0)*z
+    ## tf.nn.tanh(srelu(x)) -> x
+    ## tf.nn.tanh(x) -> tf.nn.tanh(tf.nn.relu(x)) in z1, z2
