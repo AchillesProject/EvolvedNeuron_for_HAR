@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "./RNNplus_v1_1Datasets.py", line 19, in <module>
-    import matplotlib.pyplot as plt
-  File "/home/ifeai/anaconda3/envs/py385_cpu/lib/python3.8/site-packages/matplotlib/pyplot.py", line 2500, in <module>
-    switch_backend(rcParams["backend"])
-  File "/home/ifeai/anaconda3/envs/py385_cpu/lib/python3.8/site-packages/matplotlib/pyplot.py", line 285, in switch_backend
-    raise ImportError(
-ImportError: Cannot load backend 'TkAgg' which requires the 'tk' interactive framework, as 'headless' is currently running
