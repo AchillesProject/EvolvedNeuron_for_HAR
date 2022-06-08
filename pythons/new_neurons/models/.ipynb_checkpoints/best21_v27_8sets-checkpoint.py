@@ -263,14 +263,14 @@ def rnn_plus_model(noInput, noOutput, timestep):
 #===============MAIN=================
 if __name__ == '__main__':
     if len(sys.argv) == 3:
-        dataset      = sys.argv[1]
+        dataset   = sys.argv[1]
         file_no   = sys.argv[2]
     else:
         print("Don't have sufficient arguments.")
         sys.exit()
 
     ISMOORE_DATASETS = True
-    path = '..\..\..\..\Datasets\8_publicDatasets\datasets'
+    path = '..\..\Datasets\8_publicDatasets\datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     print(os.path.join(path, dataset, trainFile))
