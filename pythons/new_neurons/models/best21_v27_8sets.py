@@ -273,13 +273,16 @@ if __name__ == '__main__':
     path = '..\..\Datasets\8_publicDatasets\datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
-    print(os.path.join(path, dataset, trainFile))
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
     with open(os.path.join(path, dataset, trainFile), "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
-
+    
+    hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
+    
+    print(f'Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}')
+          
     scaler    = StandardScaler()
     x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
     x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
