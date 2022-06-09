@@ -263,7 +263,7 @@ if __name__ == '__main__':
         sys.exit()
 
     ISMOORE_DATASETS = True
-    path = '../../Datasets/8_publicDatasets/datasets'
+    path = '..\..\..\..\Datasets\8_publicDatasets\datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     print(os.path.join(path, dataset, trainFile))
