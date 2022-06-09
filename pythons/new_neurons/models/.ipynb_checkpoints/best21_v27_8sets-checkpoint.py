@@ -248,7 +248,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
-    model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
+    model.compile(optimizer=optimizer, loss = 'mse', metrics=[tf.keras.metrics.CategoricalAccuracy(),tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.Accuracy()], run_eagerly=False)
     print(tf.keras.backend.floatx())
     print(model.summary())
     return model
@@ -263,9 +263,10 @@ if __name__ == '__main__':
         sys.exit()
 
     ISMOORE_DATASETS = True
-    path = '../../Datasets/8_publicDatasets/datasets'
+    path = '..\..\..\..\Datasets\8_publicDatasets\datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
+    print(os.path.join(path, dataset, trainFile))
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
@@ -273,26 +274,27 @@ if __name__ == '__main__':
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
-    
     print(f"Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}")
-          
+        
     scaler    = StandardScaler()
     x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
     x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
+    
     x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
     x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-    for i in range( y_train.shape[ 0 ]) :
-        for j in range( y_train.shape[1]) :
-            y_train[i, j] = fromBit_v1(y_train[i,j])
-    for i in range(y_val.shape[0]):
-        for j in range(y_val.shape[ 1 ]):
-            y_val[i, j] = fromBit_v1(y_val[ i, j ])
+
+    # for i in range( y_train.shape[ 0 ]) :
+    #     for j in range( y_train.shape[1]) :
+    #         y_train[i, j] = fromBit_v1(y_train[i,j])
+    # for i in range(y_val.shape[0]):
+    #     for j in range(y_val.shape[ 1 ]):
+    #         y_val[i, j] = fromBit_v1(y_val[ i, j ])
 
     model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
                         x_train, y_train,
                         batch_size=int(hyperparams['batchSize']),
-                        verbose=0, # Suppress chatty output; use Tensorboard instead
+                        verbose=1, # Suppress chatty output; use Tensorboard instead
                         epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                         validation_data=(x_val, y_val),
                         shuffle=True,
@@ -300,5 +302,7 @@ if __name__ == '__main__':
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
-    print(f"{os.path.join(path, dataset, valFile)} val_performance = {val_performance}")
-    print(f"{os.path.join(path, dataset, valFile)} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
+    print(f"{valFile} val_loss = {val_performance[0]}")
+    print(f"{valFile} val_categorical_accuracy = {val_performance[1]}")
+    print(f"{valFile} val_binary_accuracy = {val_performance[2]}")
+    print(f"{valFile} val_accuracy = {val_performance[3]}")
