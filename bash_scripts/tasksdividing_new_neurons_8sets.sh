@@ -10,7 +10,8 @@ for dataset in "${datasets[@]}"; do
     for ((i=1;i<=loop_no;i++)); do
         log_dir="../pythons/new_neurons/logs/log_best21_v27_${dataset}_${i}.txt";
         echo "${log_dir}-${cpu_index}";
-        `taskset -c "$cpu_index"  python3 "$pythonscript" "$dataset" "$i" &>"$log_dir" &!`;
+        echo "taskset -c ${cpu_index} python3 ${python_script} ${dataset} ${i} &>${log_dir} &!";
+        `taskset -c "$cpu_index"  python3 "$python_script" "$dataset" "$i" &>"$log_dir" &!`;
         ((cpu_index += 1));
     done
 done
