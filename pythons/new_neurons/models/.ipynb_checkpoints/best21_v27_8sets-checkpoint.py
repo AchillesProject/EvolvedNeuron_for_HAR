@@ -281,7 +281,7 @@ if __name__ == '__main__':
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
     
-    print(f'Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}')
+    print(f"Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}")
           
     scaler    = StandardScaler()
     x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
