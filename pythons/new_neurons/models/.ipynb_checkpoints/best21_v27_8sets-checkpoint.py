@@ -33,13 +33,6 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
-# Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
-
 with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
@@ -270,7 +263,7 @@ if __name__ == '__main__':
         sys.exit()
 
     ISMOORE_DATASETS = True
-    path = '..\..\Datasets\8_publicDatasets\datasets'
+    path = '../../Datasets/8_publicDatasets/datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
@@ -303,8 +296,7 @@ if __name__ == '__main__':
                         epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                         validation_data=(x_val, y_val),
                         shuffle=True,
-                        use_multiprocessing=False,
-                        callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                        use_multiprocessing=False
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
