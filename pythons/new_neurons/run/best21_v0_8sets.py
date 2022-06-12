@@ -252,18 +252,6 @@ def rnn_plus_model(noInput, noOutput, timestep):
     print(model.summary())
     return model
 
-def lstm_wLRS_wtCMF_model(noInput, noOutput, timestep):
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.LSTM(units=hyperparams['noUnits'], input_shape=[timestep, noInput],
-                   activation='tanh', recurrent_activation='sigmoid', unroll=False, use_bias=True,
-                   recurrent_dropout=0.0, return_sequences=False, name='LSTM_layer'))
-    model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
-    model.add(tf.keras.layers.Dense(noOutput))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
-                                    beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
-    model.compile(optimizer=optimizer, loss = 'mse', metrics=[tf.keras.metrics.CategoricalAccuracy(),tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.Accuracy()], run_eagerly=False)
-    return model
-
 #===============MAIN=================
 if __name__ == '__main__':
     if len(sys.argv) == 3:
@@ -301,7 +289,7 @@ if __name__ == '__main__':
     #     for j in range(y_val.shape[ 1 ]):
     #         y_val[i, j] = fromBit_v1(y_val[ i, j ])
 
-    model = lstm_wLRS_wtCMF_model(noIn, noOut, timestep=hyperparams['timestep'])
+    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
                         x_train, y_train,
                         batch_size=int(hyperparams['batchSize']),
