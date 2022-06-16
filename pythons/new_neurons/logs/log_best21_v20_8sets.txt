@@ -1,0 +1,4 @@
+tf:  2.8.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+{'batchSize': 4.0, 'numTrainingSteps': 320000.0, 'beta1': 0.974833, 'beta2': 0.99689, 'epsilon': 0.00388, 'decayDurationFactor': 0.979079, 'initialLearningRate': 0.002798, 'learningRateDecay': 0.001025, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'testSize': 0.5, 'noUnits': 81, 'timestep': 40}
+Don't have sufficient arguments.
