@@ -1,0 +1,25 @@
+2022-06-09 09:55:02.071933: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+tf:  2.8.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+{'batchSize': 4.0, 'numTrainingSteps': 320000.0, 'beta1': 0.974833, 'beta2': 0.99689, 'epsilon': 0.00388, 'decayDurationFactor': 0.979079, 'initialLearningRate': 0.002798, 'learningRateDecay': 0.001025, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'testSize': 0.5, 'noUnits': 81, 'timestep': 40}
+Path: ../../Datasets/8_publicDatasets/datasets/ECG5000/train22.csv - Shape: (2499, 840) - Timestep: 140 - NoIn: 1 - NoOut: 5
+float64
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ RNNp_layer (RNN)            (None, 81)                26892     
+                                                                 
+ MLP_layer (Dense)           (None, 6)                 492       
+                                                                 
+ Output_layer (Dense)        (None, 5)                 35        
+                                                                 
+=================================================================
+Total params: 27,419
+Trainable params: 27,419
+Non-trainable params: 0
+_________________________________________________________________
+None
+../../Datasets/8_publicDatasets/datasets/ECG5000/test22.csv val_performance = 0.02045380591161087
+../../Datasets/8_publicDatasets/datasets/ECG5000/test22.csv val accuracy = 0.94238
