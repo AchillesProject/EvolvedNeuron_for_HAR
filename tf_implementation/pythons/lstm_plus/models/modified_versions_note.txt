@@ -1,0 +1,43 @@
+lstm+_v01: adding srelu with tanh
+    ## tanh(x) -> tanh(srelu(x))
+    
+lstm+_v02: second previous carry state c_tm2
+    ## c, o = self._compute_carry_and_output_fused(z, c_tm1) -> c, o = self._compute_carry_and_output_fused(z, c_tm2)
+    
+lstm+_v03: v1 + v2
+    ## tanh(x) -> tanh(srelu(x))
+    ## c, o = self._compute_carry_and_output_fused(z, c_tm1) -> c, o = self._compute_carry_and_output_fused(z, c_tm2)
+    
+lstm+_v04: adding 3 tanh functions exclude c function
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v05: # making the quaratic function in hidden state
+    ## c = f * c_tm1 + i * self.activation(z2) -> c = (f * c_tm1 + i * self.activation(z2)) * c_tm1
+    
+lstm+_v06: v4 (exclude c function) + v5 
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    ## c = f * c_tm1 + i * self.activation(z2) -> c = (f * c_tm1 + i * self.activation(z2)) * c_tm1
+    
+lstm+_v07: v1 + v4 (exclude c function) + v5
+    ## self.activation(x) -> self.activation(srelu(x))
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    ## c = f * c_tm1 + i * self.activation(z2) -> c = (f * c_tm1 + i * self.activation(z2)) * c_tm1
+
+lstm+_v08: v1 + v2 + v4 (exclude c function) + v5
+    ## self.activation(x) -> self.activation(srelu(x))
+    ## c, o = self._compute_carry_and_output_fused(z, c_tm1) -> c, o = self._compute_carry_and_output_fused(z, c_tm2)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    ## c = f * c_tm1 + i * self.activation(z2) -> c = (f * c_tm1 + i * self.activation(z2)) * c_tm1
+    
+lstm+_v09: v4 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v10: v6 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v11: v7 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+    
+lstm+_v12: v8 (include c function)
+    ## self.activation(x) -> self.activation(self.activation(self.activation(x)))
+ 

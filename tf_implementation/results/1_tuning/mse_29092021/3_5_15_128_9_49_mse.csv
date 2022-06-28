@@ -1,0 +1,16 @@
+Items,3_5_15_128_9_49
+project,MasterProject
+log_dir,../logs//tuner//3_5_15_128_9_49//mse//MasterProject
+dataset_no,3_5_15_128_9_49
+objectives,"val_binary_accuracy, max"
+af_LSTM,relu
+raf_LSTM,sigmoid
+af_dense,sigmoid
+optimizer,adam
+learning_rate,0.01
+thresholds_BA,0.6
+tuner/epochs,3
+tuned_score,0.56132
+loss,0.23581
+binary_accuracy,0.55523
+training_time (ms),593.51022
