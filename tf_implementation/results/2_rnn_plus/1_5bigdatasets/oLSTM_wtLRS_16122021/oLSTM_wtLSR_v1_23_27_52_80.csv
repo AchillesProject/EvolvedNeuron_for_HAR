@@ -1,5 +1,0 @@
-Items,oLSTM_wtLSR_v1_23_27_52_80
-dataset_no,oLSTM_wtLSR_v1_23_27_52_80
-dataset_name,../../Datasets/1_5_big_datasets/bigdatasets/seqnetdata.ni=23.no=27.mc=52.numTimeSteps80.51.csv
-traintime_avg (ms):,20.36678
-rnnplus_avg,73.63133

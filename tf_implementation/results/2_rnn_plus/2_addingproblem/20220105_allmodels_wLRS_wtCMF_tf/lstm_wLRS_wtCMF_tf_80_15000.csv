@@ -1,5 +1,0 @@
-Items,lstm_wLRS_wtCMF_tf_80_15000
-dataset_no,lstm_wLRS_wtCMF_tf_80_15000
-dataset_name,../../Datasets/2_addingproblem/addingProblem.bs=80.ts=15000.csv
-traintime_avg (ms):,8543.13626
-accuracy_avg,100.0

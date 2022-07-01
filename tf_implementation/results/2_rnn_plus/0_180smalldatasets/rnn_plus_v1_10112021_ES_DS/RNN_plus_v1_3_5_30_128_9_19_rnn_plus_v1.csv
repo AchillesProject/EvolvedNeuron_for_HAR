@@ -1,8 +1,0 @@
-Items,RNN_plus_v1_3_5_30_128_9_19
-dataset_no,RNN_plus_v1_3_5_30_128_9_19
-dataset_name,../Version9.128timesteps/seqnetdata.ni=3.no=5.mc=30.numTimeSteps128.version9.19.csv
-loss,0.79791
-val_loss,0.79791
-val_customMetricfn,0.54327
-pred_accuracy,0.54327
-training_time (ms),32.49832

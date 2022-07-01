@@ -1,6 +1,0 @@
-dataset;lstm_wLRS_wCMF_tf;lstm_wLRS_wtCMF_tf;lstm_wtLRS_wCMF_tf;lstm_wtLRS_wtCMF_tf;rnn_plus_wLRS_wCMF_tf;rnn_plus_wLRS_wtCMF_tf;rnn_plus_wtLRS_wCMF_tf;rnn_plus_wtLRS_wtCMF_tf;rnn_wLRS_wCMF_tf;rnn_wLRS_wtCMF_tf;rnn_wtLRS_wCMF_tf;rnn_wtLRS_wtCMF_tf;lstm_wtlrs_wb_c;lstm_wtlrs_nes_wb_c;lstm_lrs_wb_c;lstm_wtlrs_wb_c,1;rnnp_lrs_c;simplernn_wbias_c;simplernn_wtbias_c;olstm_wtlrs_c
-seqnetdata,ni=14,no=19,mc=221,numTimeSteps300,52,csv;77,4432;79,8544;77,2614;77,6418;76,5922;81,2998;79,3100;77,3000;78,9780;76,6766;78,0306;75,9748;75,45;75,17;75,56;75,45;78,04;74,72;72,47;75,45
-seqnetdata,ni=15,no=22,mc=44,numTimeSteps84,60,csv;87,7844;89,6010;87,6564;86,3300;86,4996;86,8418;87,2968;86,1586;86,1100;86,5890;86,1878;86,3844;84,52;84,45;84,53;84,52;85,73;84,96;80,22;84,52
-seqnetdata,ni=20,no=24,mc=69,numTimeSteps71,85,csv;81,6888;82,5512;81,4258;81,3110;82,2842;82,4140;79,4948;80,2844;81,2210;81,6778;80,8746;79,9740;78,88;78,79;78,83;78,88;81,47;79,12;78,16;78,88
-seqnetdata,ni=23,no=27,mc=52,numTimeSteps80,51,csv;78,0948;77,9632;77,6428;77,4606;79,2492;78,5956;77,5564;77,8658;78,2436;77,5912;77,6774;77,1536;77,29;77,3;77,26;77,29;79,31;75,23;71,52;77,29
-seqnetdata,ni=27,no=32,mc=63,numTimeSteps125,32,csv;80,9994;80,8718;80,4736;80,6426;80,4370;80,3684;80,3294;78,7056;78,6564;78,5072;80,5446;79,0458;78,96;79;79,36;78,96;81,21;78,96;77,77;78,96

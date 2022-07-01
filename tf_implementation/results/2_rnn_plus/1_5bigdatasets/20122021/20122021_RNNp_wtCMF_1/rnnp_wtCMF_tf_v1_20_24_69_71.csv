@@ -1,5 +1,0 @@
-Items,rnnp_wtCMF_tf_v1_20_24_69_71
-dataset_no,rnnp_wtCMF_tf_v1_20_24_69_71
-dataset_name,../../Datasets/1_5_big_datasets/bigdatasets/seqnetdata.ni=20.no=24.mc=69.numTimeSteps71.85.csv
-traintime_avg (ms):,123.11406
-accuracy_avg,79.8212
