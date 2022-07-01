@@ -1,5 +1,0 @@
-Items,oLSTM_wtLRS_v1_14_19_221_300
-dataset_no,oLSTM_wtLRS_v1_14_19_221_300
-dataset_name,../../Datasets/1_5_big_datasets/bigdatasets/seqnetdata.ni=14.no=19.mc=221.numTimeSteps300.52.csv
-traintime_avg (ms):,534.44551
-accuracy_avg,75.918
