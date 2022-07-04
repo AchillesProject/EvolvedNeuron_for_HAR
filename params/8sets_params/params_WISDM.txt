@@ -1,0 +1,13 @@
+static trainParams extParams = {
+	.batchSize = 4,
+	.numTrainingSteps = 320000,
+	.beta1=0.944793,
+	.beta2=0.999997,
+	.epsilon=0.000227,
+	.decayDurationFactor=0.974749,
+	.initialLearningRate=0.001167,
+	.learningRateDecay=0.000474,
+	.glorotScaleFactor=0.1,
+	.orthogonalScaleFactor=0.1,
+	.numNodes=64
+};
