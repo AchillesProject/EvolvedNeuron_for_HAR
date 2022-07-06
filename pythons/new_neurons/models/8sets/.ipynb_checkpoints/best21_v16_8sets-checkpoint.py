@@ -123,7 +123,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_16_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -133,7 +133,7 @@ class RNN_plus_v1_2_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_2_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_16_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -242,7 +242,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_2_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_16_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -260,12 +260,22 @@ if __name__ == '__main__':
     else:
         print("Don't have sufficient arguments.")
         sys.exit()
-
+    
     ISMOORE_DATASETS = True
     path = '../../Datasets/8_publicDatasets/datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     print(os.path.join(path, dataset, trainFile))
+    
+    # with open("../params/8sets_params/params_{dataset}.txt") as f:
+    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
+        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace('\t.', '')).split('=') for x in f][1:-1])
+    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+    hyperparams['batchSize'] = int(hyperparams['batchSize'])
+    hyperparams['numNodes'] = int(hyperparams['numNodes'])
+    hyperparams['numTrainingSteps'] = int(hyperparams['numTrainingSteps'])
+    print(hyperparams)
+    
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
@@ -281,13 +291,11 @@ if __name__ == '__main__':
     
     x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
     x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-
-    # for i in range( y_train.shape[ 0 ]) :
-    #     for j in range( y_train.shape[1]) :
-    #         y_train[i, j] = fromBit_v1(y_train[i,j])
-    # for i in range(y_val.shape[0]):
-    #     for j in range(y_val.shape[ 1 ]):
-    #         y_val[i, j] = fromBit_v1(y_val[ i, j ])
+    
+    if dataset == 'DoublePendulum':
+        metrics_array = ['mae']
+    else:
+        metrics_array = [tf.keras.metrics.CategoricalAccuracy()]
 
     model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
@@ -301,7 +309,6 @@ if __name__ == '__main__':
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
+    print(f"{valFile} val_performance = {val_performance}")
     print(f"{valFile} val_loss = {val_performance[0]}")
-    print(f"{valFile} val_categorical_accuracy = {val_performance[1]}")
-    print(f"{valFile} val_binary_accuracy = {val_performance[2]}")
-    print(f"{valFile} val_accuracy = {val_performance[3]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")

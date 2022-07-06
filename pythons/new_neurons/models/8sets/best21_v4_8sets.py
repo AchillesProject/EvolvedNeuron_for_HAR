@@ -261,12 +261,13 @@ if __name__ == '__main__':
     else:
         print("Don't have sufficient arguments.")
         sys.exit()
-
+    
     ISMOORE_DATASETS = True
     path = '../../Datasets/8_publicDatasets/datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     print(os.path.join(path, dataset, trainFile))
+    
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
@@ -282,13 +283,11 @@ if __name__ == '__main__':
     
     x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
     x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-
-    # for i in range( y_train.shape[ 0 ]) :
-    #     for j in range( y_train.shape[1]) :
-    #         y_train[i, j] = fromBit_v1(y_train[i,j])
-    # for i in range(y_val.shape[0]):
-    #     for j in range(y_val.shape[ 1 ]):
-    #         y_val[i, j] = fromBit_v1(y_val[ i, j ])
+    
+    if dataset == 'DoublePendulum':
+        metrics_array = ['mae']
+    else:
+        metrics_array = [tf.keras.metrics.CategoricalAccuracy()]
 
     model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
@@ -302,7 +301,6 @@ if __name__ == '__main__':
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
+    print(f"{valFile} val_performance = {val_performance}")
     print(f"{valFile} val_loss = {val_performance[0]}")
-    print(f"{valFile} val_categorical_accuracy = {val_performance[1]}")
-    print(f"{valFile} val_binary_accuracy = {val_performance[2]}")
-    print(f"{valFile} val_accuracy = {val_performance[3]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")
