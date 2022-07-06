@@ -30,8 +30,16 @@ tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
+
 tf.keras.backend.set_floatx('float64')
 
+with open("../params/params_har.txt") as f:
+    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+hyperparams['testSize'] = 0.500
+hyperparams['noUnits'] = 81
+hyperparams['timestep'] = 40
+print(hyperparams)
 
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
@@ -115,7 +123,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_0_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_4_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -125,7 +133,7 @@ class RNN_plus_v1_0_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_0_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_4_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -178,13 +186,14 @@ class RNN_plus_v1_0_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
-        z2 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3])))))
+        z1 = tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))  #remove 2 tanh
+        z2 = tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state2 + w_aux[3]))) #remove 2 tanh and w_aux[2]*state3 -> w_aux[2]*state2
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
-        output = prev_output - (z - state1)*z
+        output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
+        f = w_aux[4]*z + op0
 
-        return output, [z, state0, w_aux[4]*z + op0, state2, output]
+        return output, [z, state0, f, state2, output]
     
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
         return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, dtype))
@@ -234,7 +243,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_0_cell(units=hyperparams['numNodes']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_4_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -242,18 +251,6 @@ def rnn_plus_model(noInput, noOutput, timestep):
     model.compile(optimizer=optimizer, loss = 'mse', metrics=[tf.keras.metrics.CategoricalAccuracy(),tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.Accuracy()], run_eagerly=False)
     print(tf.keras.backend.floatx())
     print(model.summary())
-    return model
-
-def lstm_wLRS_wtCMF_model(noInput, noOutput, timestep, metrics_arr):
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.LSTM(units=hyperparams['numNodes'], input_shape=[timestep, noInput],
-                   activation='tanh', recurrent_activation='sigmoid', unroll=False, use_bias=True,
-                   recurrent_dropout=0.0, return_sequences=False, name='LSTM_layer'))
-    model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
-    model.add(tf.keras.layers.Dense(noOutput))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
-                                    beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam_lstm")
-    model.compile(optimizer=optimizer, loss = 'mse', metrics = metrics_arr, run_eagerly=False)
     return model
 
 #===============MAIN=================
@@ -270,15 +267,6 @@ if __name__ == '__main__':
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     print(os.path.join(path, dataset, trainFile))
-    
-    # with open("../params/8sets_params/params_{dataset}.txt") as f:
-    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
-        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace('\t.', '')).split('=') for x in f][1:-1])
-    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-    hyperparams['batchSize'] = int(hyperparams['batchSize'])
-    hyperparams['numNodes'] = int(hyperparams['numNodes'])
-    hyperparams['numTrainingSteps'] = int(hyperparams['numTrainingSteps'])
-    print(hyperparams)
     
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
@@ -297,15 +285,15 @@ if __name__ == '__main__':
     x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
     
     if dataset == 'DoublePendulum':
-        metrics_array = ['mse', 'mae']
+        metrics_array = ['mae']
     else:
         metrics_array = [tf.keras.metrics.CategoricalAccuracy()]
-        
-    model = lstm_wLRS_wtCMF_model(noIn, noOut, timestep=hyperparams['timestep'], metrics_arr=metrics_array)
+
+    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
                         x_train, y_train,
                         batch_size=int(hyperparams['batchSize']),
-                        verbose=1, # Suppress chatty output; use Tensorboard instead
+                        verbose=0, # Suppress chatty output; use Tensorboard instead
                         epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                         validation_data=(x_val, y_val),
                         shuffle=True,
@@ -314,3 +302,5 @@ if __name__ == '__main__':
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
     print(f"{valFile} val_performance = {val_performance}")
+    print(f"{valFile} val_loss = {val_performance[0]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")

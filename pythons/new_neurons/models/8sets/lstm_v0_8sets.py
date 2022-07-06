@@ -314,3 +314,5 @@ if __name__ == '__main__':
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
     print(f"{valFile} val_performance = {val_performance}")
+    print(f"{valFile} val_loss = {val_performance[0]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")
