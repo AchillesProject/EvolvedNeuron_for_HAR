@@ -131,7 +131,7 @@ class RNN_plus_v1_27_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_25_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_27_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -255,7 +255,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
 ## Only LSTM has tunned the hyper-parameters.
 
 if __name__ == '__main__':
-     if len(sys.argv) == 3:
+    if len(sys.argv) == 3:
         dataset   = sys.argv[1]
         file_no   = sys.argv[2]
     else:
