@@ -34,7 +34,9 @@ def fill_frame(window_frame, value_frame, label_frame):
 
     window_array[:,:value_frame.shape[1]] = value_array
     window_array[:,value_frame.shape[1]:] = label_array
+  
 
+  
 try:
     out = open(arguments.out_file, "w")
 except OSError:
