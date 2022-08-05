@@ -252,6 +252,7 @@ if __name__ == '__main__':
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '../predict_results'
+    y_pred_new = np.array([[]])
     
     with open("../params/params_har.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
