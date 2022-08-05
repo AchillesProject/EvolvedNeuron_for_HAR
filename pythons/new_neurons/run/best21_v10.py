@@ -113,7 +113,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_7_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_10_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -123,7 +123,7 @@ class RNN_plus_v1_7_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_7_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_10_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -173,8 +173,8 @@ class RNN_plus_v1_7_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0))  #remove 3 tanh
-        z2 = srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*prev_output + w_aux[3])) #remove 3 tanh and w_aux[2]*state3 -> w_aux[2]*prev_output
+        z1 = op4*srelu(w_aux[0]*op3 + inputs_0)  #remove all tanh: tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = srelu(w_aux[1]*op2 + w_aux[3]) #remove all tanh and (w_aux[2]*state3 or w_aux[2]*prev_output)
         z3 = tf.nn.relu(inputs_2) #remove 1 tanh
         z  = tf.nn.tanh(z1 - (z2 + z3)) #add 1 tanh
         output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
@@ -229,7 +229,7 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_7_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_10_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -299,7 +299,7 @@ if __name__ == '__main__':
         y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
 
         np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
-        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",")
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
         
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")

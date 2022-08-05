@@ -10,7 +10,6 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +17,6 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -32,21 +30,6 @@ tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
-
-snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
-# Debugging with Tensorboard
-logdir="logs/fit/rnn_v1_1/" + snapshot
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
-
-with open("../params/params_har.txt") as f:
-    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-hyperparams['testSize'] = 0.500
-hyperparams['noUnits'] = 81
-hyperparams['timestep'] = 40
-print(hyperparams)
 
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
@@ -265,10 +248,18 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-    # logdir = f"./logs/scalars/wisdm"
-    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    # print(hyperparams)
-    print(tf.keras.backend.floatx())
+    
+    pyname = os.path.basename(sys.argv[0]).split('.')[0]
+    result_dir = '../predict_results'
+    
+    with open("../params/params_har.txt") as f:
+        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+    hyperparams['testSize'] = 0.500
+    hyperparams['noUnits'] = 81
+    hyperparams['timestep'] = 40
+    print(hyperparams)
+    
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
@@ -297,9 +288,21 @@ if __name__ == '__main__':
                             shuffle=True,
                             use_multiprocessing=False,
                             # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
+        
+        for y in y_pred:
+            if y_pred_new.shape[1] == 0:
+                y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
+            else:
+                y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
+
+        y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
+        y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
+
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",")
+        
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
