@@ -249,9 +249,10 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-
+    
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '../predict_results'
+    y_pred_new = np.array([[]])
     
     with open("../params/params_har.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
