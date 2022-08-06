@@ -525,8 +525,6 @@ if __name__ == '__main__':
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     
-    y_pred_new = np.array([[]])
-    
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
 
@@ -573,6 +571,7 @@ if __name__ == '__main__':
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
         
+        y_pred_new = np.array([[]])
         for y in y_pred:
             if y_pred_new.shape[1] == 0:
                 y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
