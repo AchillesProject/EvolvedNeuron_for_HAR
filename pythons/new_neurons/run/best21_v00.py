@@ -251,8 +251,11 @@ if __name__ == '__main__':
     y_pred_new = np.array([[]])
     
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
-    result_dir = '../predict_results'
-    
+    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
+
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+        
     with open("../params/params_har.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
