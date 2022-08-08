@@ -274,7 +274,7 @@ if __name__ == '__main__':
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace('\t.', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
     hyperparams['batchSize'] = int(hyperparams['batchSize'])
-    hyperparams['numNodes'] = int(hyperparams['noUnits'])
+    hyperparams['noUnits'] = int(hyperparams['noUnits'])
     hyperparams['numTrainingSteps'] = int(hyperparams['numTrainingSteps'])
     
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
