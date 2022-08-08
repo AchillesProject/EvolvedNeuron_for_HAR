@@ -271,7 +271,7 @@ if __name__ == '__main__':
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
-    with open(os.path.join(path, dataset, trainFile), "r") as fp:
+    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
