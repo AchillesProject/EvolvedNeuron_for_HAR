@@ -264,10 +264,11 @@ if __name__ == '__main__':
         os.makedirs(result_dir)
         
     with open(f"../params/8sets_params/params_{dataset}.txt") as f:
-        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace('\t.', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-    hyperparams['testSize'] = 0.500
-    hyperparams['timestep'] = 40
+    hyperparams['batchSize'] = int(hyperparams['batchSize'])
+    hyperparams['noUnits'] = int(hyperparams['noUnits'])
+    hyperparams['numTrainingSteps'] = int(hyperparams['numTrainingSteps'])
     
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
