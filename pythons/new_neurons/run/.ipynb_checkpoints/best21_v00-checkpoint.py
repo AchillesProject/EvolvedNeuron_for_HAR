@@ -10,7 +10,6 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -114,7 +113,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_16_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -124,7 +123,7 @@ class RNN_plus_v1_16_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_16_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -177,8 +176,8 @@ class RNN_plus_v1_16_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*(w_aux[0]*op3 + inputs_0)))) # remove tanh(srelu(x))
-        z2 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3]))) # remove srelu(tanh(x))
+        z1 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3])))))
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
         output = prev_output - (z - state1)*z
@@ -233,29 +232,22 @@ def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_16_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
                                         beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
-    model.compile(optimizer=optimizer, loss = 'mse', metrics=[tf.keras.metrics.CategoricalAccuracy(),tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.Accuracy()], run_eagerly=False)
+    model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
     print(tf.keras.backend.floatx())
     print(model.summary())
     return model
 
 #===============MAIN=================
 if __name__ == '__main__':
-    if len(sys.argv) == 3:
-        dataset   = sys.argv[1]
-        file_no   = sys.argv[2]
-    else:
-        print("Don't have sufficient arguments.")
-        sys.exit()
-    
     ISMOORE_DATASETS = True
-    path = '../../Datasets/8_publicDatasets/datasets'
-    trainFile = f'train{file_no}.csv'
-    valFile   = f'test{file_no}.csv'
+    noIn, noOut = 3, 6
+    path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
+    fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
     
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
@@ -263,60 +255,58 @@ if __name__ == '__main__':
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
         
-    with open(f"../params/params_{dataset}.txt") as f:
+    with open("../params/params_har.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
     hyperparams['testSize'] = 0.500
+    hyperparams['noUnits'] = 81
     hyperparams['timestep'] = 40
-    
-    df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
-    df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
-
-    with open(os.path.join(path, dataset, trainFile), "r") as fp:
-        [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
-    
-    hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
-    print(f"Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}")
     print(hyperparams)
+
+    for file_no in range(8):
+        trainFile = f'train{file_no}.csv'
+        valFile   = f'val{file_no}.csv'
+        df_train  = np.array(pd.read_csv(os.path.join(path, trainFile), skiprows=1))
+        df_val    = np.array(pd.read_csv(os.path.join(path, valFile), skiprows=1))
+
+        scaler    = StandardScaler()
+        x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
+        x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
+        x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
+        x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
+        for i in range( y_train.shape[ 0 ]) :
+            for j in range( y_train.shape[1]) :
+                y_train[i, j] = fromBit_v1(y_train[i,j])
+        for i in range(y_val.shape[0]):
+            for j in range(y_val.shape[ 1 ]):
+                y_val[i, j] = fromBit_v1(y_val[ i, j ])
+
+        model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
+        model_history = model.fit(
+                            x_train, y_train,
+                            batch_size=int(hyperparams['batchSize']),
+                            verbose=1, # Suppress chatty output; use Tensorboard instead
+                            epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
+                            validation_data=(x_val, y_val),
+                            shuffle=True,
+                            use_multiprocessing=False,
+                            #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                        )
+        y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
+        val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
         
-    scaler    = StandardScaler()
-    x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
-    x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
-    
-    x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
-    x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-    
-    if dataset == 'DoublePendulum':
-        metrics_array = ['mae']
-    else:
-        metrics_array = [tf.keras.metrics.CategoricalAccuracy()]
+        y_pred_new = np.array([[]])
+        for y in y_pred:
+            if y_pred_new.shape[1] == 0:
+                y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
+            else:
+                y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
 
-    model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
-    model_history = model.fit(
-                        x_train, y_train,
-                        batch_size=int(hyperparams['batchSize']),
-                        verbose=0, # Suppress chatty output; use Tensorboard instead
-                        epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
-                        validation_data=(x_val, y_val),
-                        shuffle=True,
-                        use_multiprocessing=False
-                    )
-    y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
-    val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
-    
-    y_pred_new = np.array([[]])
-    for y in y_pred:
-        if y_pred_new.shape[1] == 0:
-            y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
-        else:
-            y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
+        y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
+        y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
 
-    y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
-    y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
-
-    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
-    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
-    
-    print(f"{valFile} val_performance = {val_performance}")
-    print(f"{valFile} val_loss = {val_performance[0]}")
-    print(f"{valFile} val_metric = {val_performance[1]}")
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
+        
+        print(f"{valFile} val_performance = {val_performance}")
+        print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")

@@ -9,5 +9,5 @@ static trainParams extParams = {
 	.learningRateDecay=0.005072,
 	.glorotScaleFactor=0.1,
 	.orthogonalScaleFactor=0.1,
-	.numNodes=128
+	.noUnits=128
 };
