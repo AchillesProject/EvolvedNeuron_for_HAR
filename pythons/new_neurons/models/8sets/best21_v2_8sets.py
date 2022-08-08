@@ -262,7 +262,7 @@ if __name__ == '__main__':
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
         
-    with open(f"../params/params_{dataset}.txt") as f:
+    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
     hyperparams['testSize'] = 0.500
