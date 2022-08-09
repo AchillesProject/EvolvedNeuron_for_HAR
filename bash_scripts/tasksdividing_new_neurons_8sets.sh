@@ -3,7 +3,7 @@
 datasets=(3W Crop DoublePendulum ECG5000 FordB InsectWingbeat LSST WISDM);
 loop_no=30;
 
-python_name="best21_v20_8sets"
+python_name="best21_v23_8sets"
 python_script="../pythons/new_neurons/run_8sets/${python_name}.py";
 cpu_index=0;
 

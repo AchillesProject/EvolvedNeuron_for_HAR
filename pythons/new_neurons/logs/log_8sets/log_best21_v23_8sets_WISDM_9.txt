@@ -1,0 +1,6 @@
+tf:  2.8.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+Traceback (most recent call last):
+  File "../pythons/new_neurons/run_8sets/best21_v23_8sets.py", line 277, in <module>
+    [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
+NameError: name 'fp' is not defined
