@@ -257,7 +257,7 @@ if __name__ == '__main__':
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     
-    pyname = os.path.basename(sys.argv[0]).split('.')[0]
+   pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
 
     if not os.path.exists(result_dir):
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
-    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
+    with open(os.path.join(path, dataset, trainFile), "r") as fp:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
