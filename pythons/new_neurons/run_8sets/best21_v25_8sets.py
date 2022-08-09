@@ -245,7 +245,7 @@ def rnn_plus_model(noInput, noOutput, timestep):
 
 #===============MAIN=================
 if __name__ == '__main__':
-     if len(sys.argv) == 3:
+    if len(sys.argv) == 3:
         dataset   = sys.argv[1]
         file_no   = sys.argv[2]
     else:
