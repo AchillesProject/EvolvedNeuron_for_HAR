@@ -257,7 +257,7 @@ if __name__ == '__main__':
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
     
-   pyname = os.path.basename(sys.argv[0]).split('.')[0]
+    pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
 
     if not os.path.exists(result_dir):
