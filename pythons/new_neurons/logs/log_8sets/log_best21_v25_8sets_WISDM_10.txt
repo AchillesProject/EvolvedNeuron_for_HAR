@@ -1,4 +1,0 @@
-  File "../pythons/new_neurons/run_8sets/best21_v25_8sets.py", line 260
-    pyname = os.path.basename(sys.argv[0]).split('.')[0]
-                                                       ^
-IndentationError: unindent does not match any outer indentation level
