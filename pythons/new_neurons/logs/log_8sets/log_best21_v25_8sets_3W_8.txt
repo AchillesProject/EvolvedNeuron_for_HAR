@@ -1,4 +1,22 @@
-  File "../pythons/new_neurons/run_8sets/best21_v25_8sets.py", line 260
-    pyname = os.path.basename(sys.argv[0]).split('.')[0]
-                                                       ^
-IndentationError: unindent does not match any outer indentation level
+2022-08-10 06:59:39.885911: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+tf:  2.8.0
+/home/chau/workingdir/tf_implementations/bash_scripts
+Path: ../../Datasets/8_publicDatasets/datasets/3W/train8.csv - Shape: (1431, 1600) - Timestep: 64 - NoIn: 8 - NoOut: 17
+{'batchSize': 4, 'numTrainingSteps': 320000, 'beta1': 0.992102, 'beta2': 0.999223, 'epsilon': 0.000182, 'decayDurationFactor': 0.905429, 'initialLearningRate': 0.000677, 'learningRateDecay': 0.002604, 'glorotScaleFactor': 0.1, 'orthogonalScaleFactor': 0.1, 'noUnits': 128, 'timestep': 64}
+float64
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ RNNp_layer (RNN)            (None, 128)               68352     
+                                                                 
+ MLP_layer (Dense)           (None, 25)                3225      
+                                                                 
+ Output_layer (Dense)        (None, 17)                442       
+                                                                 
+=================================================================
+Total params: 72,019
+Trainable params: 72,019
+Non-trainable params: 0
+_________________________________________________________________
