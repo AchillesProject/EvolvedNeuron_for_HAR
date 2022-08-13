@@ -31,14 +31,6 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-with open("../params/params_har.txt") as f:
-    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-hyperparams['testSize'] = 0.500
-hyperparams['noUnits'] = 81
-hyperparams['timestep'] = 40
-print(hyperparams)
-
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
     for i in range(data.shape[0]):
