@@ -1,6 +1,8 @@
 # Introducing an Evolved Neuron for Human Activity Recognition
 ## Empirical Study on Performance and Generalization
-Under the supervision of Prof. Roland Olsson
+Author: **Chau Tran**
+
+Under the supervision of **Prof. Roland Olsson**
 
 The thesis is established as a pilot study that concentrates on neuron exploration, which is comprised of analyzing its logic, importing it to other frameworks such as TensorFlow, and evaluating its accuracy. 
 The selected neuron is version 30th in the synthesized list for HAR using the Wireless Sensor Data Mining (WISDM) dataset, which is the second best in both complexity and accuracy.
