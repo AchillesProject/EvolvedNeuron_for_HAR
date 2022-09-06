@@ -1,3 +1,7 @@
 #pareto
 
 ./pareto/
+./logs/scalars
+./logs/fit
+./logs/rerun
+
