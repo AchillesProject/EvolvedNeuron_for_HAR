@@ -4,4 +4,5 @@
 ./logs/scalars
 ./logs/fit
 ./logs/rerun
+./python/new_neurons/logs
 
