@@ -10,7 +10,6 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +17,6 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-# print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -32,14 +30,6 @@ tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
-
-with open("../params/params_har.txt") as f:
-    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-hyperparams['testSize'] = 0.500
-hyperparams['noUnits'] = 81
-hyperparams['timestep'] = 40
-print(hyperparams)
 
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
@@ -255,26 +245,38 @@ def rnn_plus_model(noInput, noOutput, timestep):
 
 #===============MAIN=================
 if __name__ == '__main__':
-    if len(sys.argv) == 3:
+     if len(sys.argv) == 3:
         dataset   = sys.argv[1]
         file_no   = sys.argv[2]
     else:
         print("Don't have sufficient arguments.")
         sys.exit()
-
+    
     ISMOORE_DATASETS = True
     path = '../../Datasets/8_publicDatasets/datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
-    print(os.path.join(path, dataset, trainFile))
+    
+    pyname = os.path.basename(sys.argv[0]).split('.')[0]
+    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
+
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+        
+    with open(f"../params/params_{dataset}.txt") as f:
+        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+    hyperparams['testSize'] = 0.500
+    
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
 
-    with open(os.path.join(path, dataset, trainFile), "r") as fp:
+    with open(f"../params/8sets_params/params_{dataset}.txt") as f:
         [noIn, noOut] = [int(x) for x in fp.readline().replace('\n', '').split(',')]
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
     print(f"Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}")
+    print(hyperparams)
         
     scaler    = StandardScaler()
     x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
@@ -282,13 +284,11 @@ if __name__ == '__main__':
     
     x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
     x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-
-    # for i in range( y_train.shape[ 0 ]) :
-    #     for j in range( y_train.shape[1]) :
-    #         y_train[i, j] = fromBit_v1(y_train[i,j])
-    # for i in range(y_val.shape[0]):
-    #     for j in range(y_val.shape[ 1 ]):
-    #         y_val[i, j] = fromBit_v1(y_val[ i, j ])
+    
+    if dataset == 'DoublePendulum':
+        metrics_array = ['mae']
+    else:
+        metrics_array = [tf.keras.metrics.CategoricalAccuracy()]
 
     model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
     model_history = model.fit(
@@ -302,7 +302,20 @@ if __name__ == '__main__':
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
+    
+    y_pred_new = np.array([[]])
+    for y in y_pred:
+        if y_pred_new.shape[1] == 0:
+            y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
+        else:
+            y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
+
+    y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
+    y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
+
+    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
+    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
+    
+    print(f"{valFile} val_performance = {val_performance}")
     print(f"{valFile} val_loss = {val_performance[0]}")
-    print(f"{valFile} val_categorical_accuracy = {val_performance[1]}")
-    print(f"{valFile} val_binary_accuracy = {val_performance[2]}")
-    print(f"{valFile} val_accuracy = {val_performance[3]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")

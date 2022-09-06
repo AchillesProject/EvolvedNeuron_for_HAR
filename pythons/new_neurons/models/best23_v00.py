@@ -10,7 +10,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
+
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +18,6 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-# print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -32,13 +31,6 @@ tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
-
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
-# Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
 
 with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
@@ -251,9 +243,6 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-    # logdir = f"./logs/scalars/wisdm"
-    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    # print(hyperparams)
     print(tf.keras.backend.floatx())
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
@@ -266,12 +255,6 @@ if __name__ == '__main__':
         x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
         x_train   = (scaler.fit_transform(x_train.reshape(x_train.shape[0], -1))).reshape(x_train.shape[0], hyperparams['timestep'], noIn)
         x_val     = (scaler.fit_transform(x_val.reshape(x_val.shape[0], -1))).reshape(x_val.shape[0], hyperparams['timestep'], noIn)
-        for i in range( y_train.shape[ 0 ]) :
-            for j in range( y_train.shape[1]) :
-                y_train[i, j] = fromBit_v1(y_train[i,j])
-        for i in range(y_val.shape[0]):
-            for j in range(y_val.shape[ 1 ]):
-                y_val[i, j] = fromBit_v1(y_val[ i, j ])
 
         model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
         model_history = model.fit(
@@ -281,9 +264,7 @@ if __name__ == '__main__':
                             epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                             validation_data=(x_val, y_val),
                             shuffle=True,
-                            use_multiprocessing=False,
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            use_multiprocessing=False
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)

@@ -269,16 +269,20 @@ if __name__ == '__main__':
     path = '../../Datasets/8_publicDatasets/datasets'
     trainFile = f'train{file_no}.csv'
     valFile   = f'test{file_no}.csv'
-    print(os.path.join(path, dataset, trainFile))
     
-    # with open("../params/8sets_params/params_{dataset}.txt") as f:
+    pyname = os.path.basename(sys.argv[0]).split('.')[0]
+    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
+
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+        
     with open(f"../params/8sets_params/params_{dataset}.txt") as f:
         hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace('\t.', '')).split('=') for x in f][1:-1])
     hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
     hyperparams['batchSize'] = int(hyperparams['batchSize'])
-    hyperparams['numNodes'] = int(hyperparams['numNodes'])
+    hyperparams['numNodes'] = int(hyperparams['noUnits'])
     hyperparams['numTrainingSteps'] = int(hyperparams['numTrainingSteps'])
-    print(hyperparams)
+    
     
     df_train  = np.array(pd.read_csv(os.path.join(path, dataset, trainFile), skiprows=1))
     df_val    = np.array(pd.read_csv(os.path.join(path, dataset, valFile), skiprows=1))
@@ -288,7 +292,8 @@ if __name__ == '__main__':
     
     hyperparams['timestep'] = int(df_train.shape[1]/(noIn+noOut))
     print(f"Path: {os.path.join(path, dataset, trainFile)} - Shape: {df_train.shape} - Timestep: {hyperparams['timestep']} - NoIn: {noIn} - NoOut: {noOut}")
-        
+    print(hyperparams)
+    
     scaler    = StandardScaler()
     x_train, y_train = seperateValues(df_train, noIn, noOut, isMoore=ISMOORE_DATASETS)
     x_val,   y_val   = seperateValues(df_val,   noIn, noOut, isMoore=ISMOORE_DATASETS) 
@@ -313,4 +318,20 @@ if __name__ == '__main__':
                     )
     y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
     val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=1)
+    
+    y_pred_new = np.array([[]])
+    for y in y_pred:
+        if y_pred_new.shape[1] == 0:
+            y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
+        else:
+            y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
+
+    y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
+    y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
+
+    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
+    np.savetxt(f'{result_dir}/{dataset}_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
+    
     print(f"{valFile} val_performance = {val_performance}")
+    print(f"{valFile} val_loss = {val_performance[0]}")
+    print(f"{valFile} val_metric = {val_performance[1]}")

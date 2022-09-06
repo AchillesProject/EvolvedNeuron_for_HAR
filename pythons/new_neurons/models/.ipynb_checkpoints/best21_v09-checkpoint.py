@@ -10,7 +10,6 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-# import tensorboard
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -18,7 +17,6 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-# print("tb: ", tensorboard.__version__)
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -32,21 +30,6 @@ tf.config.set_visible_devices([], 'GPU')
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
-
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
-# Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
-
-with open("../params/params_har.txt") as f:
-    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-hyperparams['testSize'] = 0.500
-hyperparams['noUnits'] = 81
-hyperparams['timestep'] = 40
-print(hyperparams)
 
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
@@ -130,7 +113,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_8_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_9_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -140,7 +123,7 @@ class RNN_plus_v1_8_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_8_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_9_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -246,7 +229,7 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_8_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_9_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -262,10 +245,21 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-    # logdir = f"./logs/scalars/wisdm"
-    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    # print(hyperparams)
-    print(tf.keras.backend.floatx())
+    
+    pyname = os.path.basename(sys.argv[0]).split('.')[0]
+    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
+
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    
+    with open("../params/params_har.txt") as f:
+        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+    hyperparams['testSize'] = 0.500
+    hyperparams['noUnits'] = 81
+    hyperparams['timestep'] = 40
+    print(hyperparams)
+    
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
@@ -294,9 +288,22 @@ if __name__ == '__main__':
                             shuffle=True,
                             use_multiprocessing=False,
                             # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
-                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
+        
+        y_pred_new = np.array([[]])
+        for y in y_pred:
+            if y_pred_new.shape[1] == 0:
+                y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
+            else:
+                y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
+
+        y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
+        y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
+
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
+        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",") 
+        
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
