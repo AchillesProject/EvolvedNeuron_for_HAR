@@ -10,10 +10,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-<<<<<<< HEAD
 # import tensorboard
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -21,10 +18,7 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-<<<<<<< HEAD
 # print("tb: ", tensorboard.__version__)
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -39,7 +33,6 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-<<<<<<< HEAD
 # snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 # path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
 # Debugging with Tensorboard
@@ -55,8 +48,6 @@ hyperparams['noUnits'] = 81
 hyperparams['timestep'] = 40
 print(hyperparams)
 
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
     for i in range(data.shape[0]):
@@ -139,7 +130,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -149,7 +140,7 @@ class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_26_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -161,55 +152,36 @@ class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
         
         self.dropout = min(1., max(0., dropout))
         self.recurrent_dropout = min(1., max(0., recurrent_dropout))
-        self.state_size = [self.units, self.units, self.units, self.units, self.units]
+        self.state_size = [self.units, self.units, self.units]
         self.output_size = self.units
         self.use_bias = True
         self.cell_dtype = DTYPE
-    
+        
     def build(self, input_shape):
         input_dim = input_shape[-1]
-        self.kernel = self.add_weight(shape=(input_dim, self.units * 2), name='w_input', initializer=self.kernel_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
-        self.recurrent_kernel = self.add_weight(shape=(self.units, self.units * 4), name='w_otherpeeps', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
-        self.aux_kernel  = self.add_weight(shape=(5, self.units), name='w_aux', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        self.kernel = self.add_weight(shape=(input_dim, self.units), name='w_input', initializer=self.kernel_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        self.recurrent_kernel = self.add_weight(shape=(self.units, self.units), name='w_otherpeeps', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
+        # self.aux_kernel  = self.add_weight(shape=(5, self.units), name='w_aux', initializer=self.recurrent_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype)
         self.bias = self.add_weight( shape=(self.units,), name='b', initializer=self.bias_initializer, regularizer=None, constraint=None, dtype=self.cell_dtype) if self.use_bias else None
         self.built = True
         
     def call(self, inputs, states, training=None):
-        state0, state1, state2, state3, prev_output = states[0], states[1], states[2], states[3], states[4]
+        state0, state1, prev_output = states[0], states[1], states[2]
         
-        w_in_0, w_in_2 = tf.split(self.kernel, num_or_size_splits=2, axis=1)
+        w_in_0 = self.kernel
 
-        w_op0, w_op2, w_op3, w_op4 = tf.split(self.recurrent_kernel, num_or_size_splits=4, axis=1)
-        w_op0 = tf.linalg.set_diag(w_op0, np.zeros((self.units,), dtype=np.float64))
-        w_op2 = tf.linalg.set_diag(w_op2, np.zeros((self.units,), dtype=np.float64))
-        w_op3 = tf.linalg.set_diag(w_op3, np.zeros((self.units,), dtype=np.float64))
-        w_op4 = tf.linalg.set_diag(w_op4, np.zeros((self.units,), dtype=np.float64))
-    
-        w_aux = self.aux_kernel
+        w_op0 = tf.linalg.set_diag(self.recurrent_kernel, np.zeros((self.units,), dtype=np.float64))
         
         inputs_0 = tf.keras.backend.dot(inputs, w_in_0)
-        # inputs_1 = tf.keras.backend.dot(inputs, w_in_1)
-        inputs_2 = tf.keras.backend.dot(inputs, w_in_2)
-        
         if self.bias is not None:
             inputs_0 = tf.keras.backend.bias_add(inputs_0, self.bias)
-            # inputs_1 = tf.keras.backend.bias_add(inputs_1, self.bias)
-            inputs_2 = tf.keras.backend.bias_add(inputs_2, self.bias)
             
         op0 = tf.keras.backend.dot(state0, w_op0)
-        # op1 = tf.keras.backend.dot(state0, w_op1)
-        op2 = tf.keras.backend.dot(state0, w_op2)
-        op3 = tf.keras.backend.dot(state0, w_op3)
-        op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(tf.nn.relu(op4*(w_aux[0]*op3 + inputs_0))) #remove 2 tanh & remove tanh(srelu)
-        z2 = tf.nn.tanh(tf.nn.relu(w_aux[1]*op2 + w_aux[2]*state0 + w_aux[3])) #remove 2 tanh & w_aux[2]*state3 -> w_aux[2]*state2 & remove tanh(srelu)
-        z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
-        z  = z1 - (z2 + z3)
-        output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
-        f = w_aux[4]*z + op0
+        z  = state1 - tf.nn.relu(inputs_0)
+        output = srelu(prev_output-(state0*state0))
 
-        return output, [z, state0, f, state2, output]
+        return output, [z, op0, output]
     
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
         return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, dtype))
@@ -257,9 +229,8 @@ class customLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     
 def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
-    
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_26_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -275,28 +246,10 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-<<<<<<< HEAD
     # logdir = f"./logs/scalars/wisdm"
     # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
     # print(hyperparams)
     print(tf.keras.backend.floatx())
-=======
-    
-    pyname = os.path.basename(sys.argv[0]).split('.')[0]
-    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
-
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
-    
-    with open("../params/params_har.txt") as f:
-        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-    hyperparams['testSize'] = 0.500
-    hyperparams['noUnits'] = 81
-    hyperparams['timestep'] = 40
-    print(hyperparams)
-    
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
@@ -324,26 +277,10 @@ if __name__ == '__main__':
                             validation_data=(x_val, y_val),
                             shuffle=True,
                             use_multiprocessing=False,
-                            #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
-<<<<<<< HEAD
-=======
-        
-        y_pred_new = np.array([[]])
-        for y in y_pred:
-            if y_pred_new.shape[1] == 0:
-                y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
-            else:
-                y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
-
-        y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
-        y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
-
-        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
-        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",")
-        
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")

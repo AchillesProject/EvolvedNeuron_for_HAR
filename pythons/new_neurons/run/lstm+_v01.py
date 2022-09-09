@@ -10,10 +10,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
-<<<<<<< HEAD
 # import tensorboard
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -21,10 +18,7 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
-<<<<<<< HEAD
 # print("tb: ", tensorboard.__version__)
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -39,14 +33,6 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
-<<<<<<< HEAD
-# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
-# Debugging with Tensorboard
-# logdir="logs/fit/rnn_v1_1/" + snapshot
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
-
 with open("../params/params_har.txt") as f:
     hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
 hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
@@ -55,8 +41,6 @@ hyperparams['noUnits'] = 81
 hyperparams['timestep'] = 40
 print(hyperparams)
 
-=======
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
     for i in range(data.shape[0]):
@@ -139,7 +123,7 @@ def _generate_zero_filled_state(batch_size_tensor, state_size, dtype):
 
     return tf.nest.map_structure(create_zeros, state_size)  if tf.nest.is_nested(state_size) else create_zeros(state_size)
 
-class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
+class RNN_plus_v1_cell(tf.keras.layers.LSTMCell):
     def __init__(self, units, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', dropout=0., recurrent_dropout=0., use_bias=True, **kwargs):
         if units < 0:
             raise ValueError(f'Received an invalid value for argument `units`, '
@@ -149,7 +133,7 @@ class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
             self._enable_caching_device = kwargs.pop('enable_caching_device', True)
         else:
             self._enable_caching_device = kwargs.pop('enable_caching_device', False)
-        super(RNN_plus_v1_26_cell, self).__init__(units, **kwargs)
+        super(RNN_plus_v1_cell, self).__init__(units, **kwargs)
         self.units = units
         self.state_size = self.units
         self.output_size = self.units
@@ -202,17 +186,16 @@ class RNN_plus_v1_26_cell(tf.keras.layers.LSTMCell):
         op3 = tf.keras.backend.dot(state0, w_op3)
         op4 = tf.keras.backend.dot(state0, w_op4)
         
-        z1 = tf.nn.tanh(tf.nn.relu(op4*(w_aux[0]*op3 + inputs_0))) #remove 2 tanh & remove tanh(srelu)
-        z2 = tf.nn.tanh(tf.nn.relu(w_aux[1]*op2 + w_aux[2]*state0 + w_aux[3])) #remove 2 tanh & w_aux[2]*state3 -> w_aux[2]*state2 & remove tanh(srelu)
+        z1 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(op4*tf.nn.tanh(srelu(w_aux[0]*op3 + inputs_0)))))
+        z2 = tf.nn.tanh(tf.nn.tanh(tf.nn.tanh(srelu(tf.nn.tanh(w_aux[1]*op2 + w_aux[2]*state3 + w_aux[3])))))
         z3 = tf.nn.tanh(tf.nn.relu(inputs_2))
         z  = z1 - (z2 + z3)
-        output = prev_output - (z - state0)*z #(z - state1)*z -> (z - state0)*z
-        f = w_aux[4]*z + op0
+        output = prev_output - (z - state1)*z
 
-        return output, [z, state0, f, state2, output]
+        return output, [z, state0, w_aux[4]*z + op0, state2, output]
     
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
-        return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, dtype))
+        return list(_generate_zero_filled_state_for_cell(self, inputs, batch_size, self.cell_dtype))
 
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, epoch, logs=None):
@@ -259,7 +242,283 @@ def rnn_plus_model(noInput, noOutput, timestep):
     """Builds a recurrent model."""
     
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_26_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.RNN(cell=RNN_plus_v1_cell(units=hyperparams['noUnits']), input_shape=[timestep, noInput], unroll=False, name='RNNp_layer', dtype=DTYPE))
+    model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
+    model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
+                                        beta_1=hyperparams['beta1'], beta_2=hyperparams['beta2'], epsilon=hyperparams['epsilon'], amsgrad=False, name="tunedAdam")
+    model.compile(optimizer=optimizer, loss = 'mse', run_eagerly=False)
+    print(tf.keras.backend.floatx())
+    print(model.summary())
+    return model
+
+
+class LSTMCell_modified(tf.keras.layers.LSTMCell):
+    def __init__(self,
+               units,
+               activation='tanh',
+               recurrent_activation='hard_sigmoid',
+               use_bias=True,
+               kernel_initializer='glorot_uniform',
+               recurrent_initializer='orthogonal',
+               bias_initializer='zeros',
+               unit_forget_bias=True,
+               kernel_regularizer=None,
+               recurrent_regularizer=None,
+               bias_regularizer=None,
+               kernel_constraint=None,
+               recurrent_constraint=None,
+               bias_constraint=None,
+               dropout=0.,
+               recurrent_dropout=0.,
+               **kwargs):
+        if units < 0:
+            raise ValueError(f'Received an invalid value for argument `units`, '
+                           f'expected a positive integer, got {units}.')
+        # By default use cached variable under v2 mode, see b/143699808.
+        if tf.compat.v1.executing_eagerly_outside_functions():
+            self._enable_caching_device = kwargs.pop('enable_caching_device', True)
+        else:
+            self._enable_caching_device = kwargs.pop('enable_caching_device', False)
+        super(LSTMCell_modified, self).__init__(units, **kwargs)
+        self.units = units
+        self.activation = tf.keras.activations.get(activation)
+        self.recurrent_activation = tf.keras.activations.get(recurrent_activation)
+        self.use_bias = use_bias
+
+        self.kernel_initializer = tf.keras.initializers.get(kernel_initializer)
+        self.recurrent_initializer = tf.keras.initializers.get(recurrent_initializer)
+        self.bias_initializer = tf.keras.initializers.get(bias_initializer)
+        self.unit_forget_bias = unit_forget_bias
+
+        self.kernel_regularizer = tf.keras.regularizers.get(kernel_regularizer)
+        self.recurrent_regularizer = tf.keras.regularizers.get(recurrent_regularizer)
+        self.bias_regularizer = tf.keras.regularizers.get(bias_regularizer)
+
+        self.kernel_constraint = tf.keras.constraints.get(kernel_constraint)
+        self.recurrent_constraint = tf.keras.constraints.get(recurrent_constraint)
+        self.bias_constraint = tf.keras.constraints.get(bias_constraint)
+
+        self.dropout = min(1., max(0., dropout))
+        self.recurrent_dropout = min(1., max(0., recurrent_dropout))
+        implementation = kwargs.pop('implementation', 1)
+        if self.recurrent_dropout != 0 and implementation != 1:
+            logging.debug(RECURRENT_DROPOUT_WARNING_MSG)
+            self.implementation = 1
+        else:
+            self.implementation = implementation
+        self.state_size = [self.units, self.units]
+        self.output_size = self.units
+
+    def build(self, input_shape):
+        # default_caching_device = _caching_device(self)
+        input_dim = input_shape[-1]
+        self.kernel = self.add_weight(
+            shape=(input_dim, self.units * 4),
+            name='kernel',
+            initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint   
+            # caching_device=default_caching_device
+        )
+        self.recurrent_kernel = self.add_weight(
+            shape=(self.units, self.units * 4),
+            name='recurrent_kernel',
+            initializer=self.recurrent_initializer,
+            regularizer=self.recurrent_regularizer,
+            constraint=self.recurrent_constraint
+            # caching_device=default_caching_device
+        )
+
+        if self.use_bias:
+            if self.unit_forget_bias:
+                def bias_initializer(_, *args, **kwargs):
+                    return tf.keras.backend.concatenate([
+                      self.bias_initializer((self.units,), *args, **kwargs),
+                      tf.keras.initializers.get('ones')((self.units,), *args, **kwargs),
+                      self.bias_initializer((self.units * 2,), *args, **kwargs),
+                    ])
+            else:
+                bias_initializer = self.bias_initializer
+            self.bias = self.add_weight(
+                  shape=(self.units * 4,),
+                  name='bias',
+                  initializer=bias_initializer,
+                  regularizer=self.bias_regularizer,
+                  constraint=self.bias_constraint
+                  # caching_device=default_caching_device
+            )
+        else:
+            self.bias = None
+        self.built = True
+
+    def _compute_carry_and_output(self, x, h_tm1, c_tm1):
+        """Computes carry and output using split kernels."""
+        x_i, x_f, x_c, x_o = x
+        h_tm1_i, h_tm1_f, h_tm1_c, h_tm1_o = h_tm1
+        i = self.recurrent_activation(
+            x_i + tf.keras.backend.dot(h_tm1_i, self.recurrent_kernel[:, :self.units]))
+        f = self.recurrent_activation(x_f + tf.keras.backend.dot(
+            h_tm1_f, self.recurrent_kernel[:, self.units:self.units * 2]))
+        c = f * c_tm1 + i * self.activation(srelu(x_c + tf.keras.backend.dot(
+            h_tm1_c, self.recurrent_kernel[:, self.units * 2:self.units * 3])))
+        o = self.recurrent_activation(
+            x_o + tf.keras.backend.dot(h_tm1_o, self.recurrent_kernel[:, self.units * 3:]))
+        return c, o
+
+    def _compute_carry_and_output_fused(self, z, c_tm1):
+        """Computes carry and output using fused kernels."""
+        z0, z1, z2, z3 = z
+        i = self.recurrent_activation(z0)
+        f = self.recurrent_activation(z1)
+        c = f * c_tm1 + i * self.activation(srelu(z2))
+        o = self.recurrent_activation(z3)
+        return c, o
+
+    def call(self, inputs, states, training=None):
+        h_tm1 = states[0]  # previous memory state
+        c_tm1 = states[1]  # previous carry state
+
+        dp_mask = self.get_dropout_mask_for_cell(inputs, training, count=4)
+        rec_dp_mask = self.get_recurrent_dropout_mask_for_cell(
+            h_tm1, training, count=4)
+
+        if self.implementation == 1:
+            if 0 < self.dropout < 1.:
+                inputs_i = inputs * dp_mask[0]
+                inputs_f = inputs * dp_mask[1]
+                inputs_c = inputs * dp_mask[2]
+                inputs_o = inputs * dp_mask[3]
+            else:
+                inputs_i = inputs
+                inputs_f = inputs
+                inputs_c = inputs
+                inputs_o = inputs
+            k_i, k_f, k_c, k_o = tf.split(
+                self.kernel, num_or_size_splits=4, axis=1)
+            x_i = tf.keras.backend.dot(inputs_i, k_i)
+            x_f = tf.keras.backend.dot(inputs_f, k_f)
+            x_c = tf.keras.backend.dot(inputs_c, k_c)
+            x_o = tf.keras.backend.dot(inputs_o, k_o)
+            if self.use_bias:
+                b_i, b_f, b_c, b_o = tf.split(
+                    self.bias, num_or_size_splits=4, axis=0)
+                x_i = tf.keras.backend.bias_add(x_i, b_i)
+                x_f = tf.keras.backend.bias_add(x_f, b_f)
+                x_c = tf.keras.backend.bias_add(x_c, b_c)
+                x_o = tf.keras.backend.bias_add(x_o, b_o)
+
+            if 0 < self.recurrent_dropout < 1.:
+                h_tm1_i = h_tm1 * rec_dp_mask[0]
+                h_tm1_f = h_tm1 * rec_dp_mask[1]
+                h_tm1_c = h_tm1 * rec_dp_mask[2]
+                h_tm1_o = h_tm1 * rec_dp_mask[3]
+            else:
+                h_tm1_i = h_tm1
+                h_tm1_f = h_tm1
+                h_tm1_c = h_tm1
+                h_tm1_o = h_tm1
+            x = (x_i, x_f, x_c, x_o)
+            h_tm1 = (h_tm1_i, h_tm1_f, h_tm1_c, h_tm1_o)
+            c, o = self._compute_carry_and_output(x, h_tm1, c_tm1)
+        else:
+            if 0. < self.dropout < 1.:
+                inputs = inputs * dp_mask[0]
+            z = tf.keras.backend.dot(inputs, self.kernel)
+            z += tf.keras.backend.dot(h_tm1, self.recurrent_kernel)
+            if self.use_bias:
+                z = tf.keras.backend.bias_add(z, self.bias)
+
+            z = tf.split(z, num_or_size_splits=4, axis=1)
+            c, o = self._compute_carry_and_output_fused(z, c_tm1)
+
+        h = o * self.activation(srelu(c))
+        return h, [h, c]
+
+    def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
+        return list(_generate_zero_filled_state_for_cell(
+            self, inputs, batch_size, DTYPE))
+
+
+class LSTM_modified(tf.keras.layers.RNN):
+    def __init__(self,
+               units,
+               activation='tanh',
+               recurrent_activation='hard_sigmoid',
+               use_bias=True,
+               kernel_initializer='glorot_uniform',
+               recurrent_initializer='orthogonal',
+               bias_initializer='zeros',
+               unit_forget_bias=True,
+               kernel_regularizer=None,
+               recurrent_regularizer=None,
+               bias_regularizer=None,
+               activity_regularizer=None,
+               kernel_constraint=None,
+               recurrent_constraint=None,
+               bias_constraint=None,
+               dropout=0.,
+               recurrent_dropout=0.,
+               return_sequences=False,
+               return_state=False,
+               go_backwards=False,
+               stateful=False,
+               unroll=False,
+               **kwargs):
+        implementation = kwargs.pop('implementation', 1)
+        if implementation == 0:
+            logging.warning('`implementation=0` has been deprecated, '
+                          'and now defaults to `implementation=1`.'
+                          'Please update your layer call.')
+        if 'enable_caching_device' in kwargs:
+            cell_kwargs = {'enable_caching_device':
+                         kwargs.pop('enable_caching_device')}
+        else:
+            cell_kwargs = {}
+        cell = LSTMCell_modified(
+            units,
+            activation=activation,
+            recurrent_activation=recurrent_activation,
+            use_bias=use_bias,
+            kernel_initializer=kernel_initializer,
+            recurrent_initializer=recurrent_initializer,
+            unit_forget_bias=unit_forget_bias,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            recurrent_regularizer=recurrent_regularizer,
+            bias_regularizer=bias_regularizer,
+            kernel_constraint=kernel_constraint,
+            recurrent_constraint=recurrent_constraint,
+            bias_constraint=bias_constraint,
+            dropout=dropout,
+            recurrent_dropout=recurrent_dropout,
+            implementation=implementation,
+            dtype=kwargs.get('dtype'),
+            trainable=kwargs.get('trainable', True),
+            **cell_kwargs)
+        super(LSTM_modified, self).__init__(
+            cell,
+            return_sequences=return_sequences,
+            return_state=return_state,
+            go_backwards=go_backwards,
+            stateful=stateful,
+            unroll=unroll,
+            **kwargs)
+        self.activity_regularizer = tf.keras.regularizers.get(activity_regularizer)
+        self.input_spec = [tf.keras.layers.InputSpec(ndim=3)]
+
+    def call(self, inputs, mask=None, training=None, initial_state=None):
+        return super(LSTM_modified, self).call(
+            inputs, mask=mask, training=training, initial_state=initial_state)
+
+    
+def lstm_modified_model(noInput, noOutput, timestep):
+    """Builds a recurrent model."""
+    
+    model = tf.keras.Sequential()
+    model.add(LSTM_modified(units=int(hyperparams['noUnits']), input_shape=[timestep, noInput],
+                   activation='tanh', recurrent_activation='sigmoid', unroll=False, use_bias=True,
+                   recurrent_dropout=0.0, return_sequences=False, name='LSTM_layer'))
     model.add(tf.keras.layers.Dense(noInput+noOutput, activation='tanh', name='MLP_layer'))
     model.add(tf.keras.layers.Dense(noOutput, name='Output_layer'))
     optimizer = tf.keras.optimizers.Adam(learning_rate=customLRSchedule(hyperparams['batchSize'], hyperparams['initialLearningRate'], hyperparams['learningRateDecay'], hyperparams['decayDurationFactor'], hyperparams['numTrainingSteps']), \
@@ -275,28 +534,10 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
-<<<<<<< HEAD
     # logdir = f"./logs/scalars/wisdm"
     # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
     # print(hyperparams)
     print(tf.keras.backend.floatx())
-=======
-    
-    pyname = os.path.basename(sys.argv[0]).split('.')[0]
-    result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
-
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
-    
-    with open("../params/params_har.txt") as f:
-        hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
-    hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
-    hyperparams['testSize'] = 0.500
-    hyperparams['noUnits'] = 81
-    hyperparams['timestep'] = 40
-    print(hyperparams)
-    
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
@@ -315,7 +556,7 @@ if __name__ == '__main__':
             for j in range(y_val.shape[ 1 ]):
                 y_val[i, j] = fromBit_v1(y_val[ i, j ])
 
-        model = rnn_plus_model(noIn, noOut, timestep=hyperparams['timestep'])
+        model = lstm_modified_model(noIn, noOut, timestep=hyperparams['timestep'])
         model_history = model.fit(
                             x_train, y_train,
                             batch_size=int(hyperparams['batchSize']),
@@ -323,27 +564,10 @@ if __name__ == '__main__':
                             epochs=int(hyperparams['numTrainingSteps']/(x_train.shape[0])),
                             validation_data=(x_val, y_val),
                             shuffle=True,
-                            use_multiprocessing=False,
+                            use_multiprocessing=True,
                             #callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
-<<<<<<< HEAD
-=======
-        
-        y_pred_new = np.array([[]])
-        for y in y_pred:
-            if y_pred_new.shape[1] == 0:
-                y_pred_new = np.array([np.where(y >= np.max(y), 1, 0)])
-            else:
-                y_pred_new = np.append(y_pred_new, np.where(y >= np.max(y), 1, 0).reshape(1, -1), 0)
-
-        y_val_indexes  = np.array([np.where(y == 1)[0][0] for y in y_val.astype(int)])
-        y_pred_indexes = np.array([np.where(y == 1)[0][0] for y in y_pred_new.astype(int)])
-
-        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
-        np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",")
-        
->>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")

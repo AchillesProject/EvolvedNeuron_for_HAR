@@ -10,6 +10,10 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, RobustScaler, StandardScaler
 
+<<<<<<< HEAD
+# import tensorboard
+=======
+>>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 import keras
 from keras.utils import tf_utils
 import pandas as pd #pd.plotting.register_matplotlib_converters
@@ -17,6 +21,10 @@ import numpy as np
 import sys, os, math, time, datetime, re
 
 print("tf: ", tf.__version__)
+<<<<<<< HEAD
+# print("tb: ", tensorboard.__version__)
+=======
+>>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 print(os.getcwd())
 
 DTYPE = tf.float64
@@ -31,6 +39,24 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '1'
 
 tf.keras.backend.set_floatx('float64')
 
+<<<<<<< HEAD
+# snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+# path = '../../../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/WISDM_ar_v1.1_processed/WISDM_ar_v1.1_wt_overlap'
+# Debugging with Tensorboard
+# logdir="logs/fit/rnn_v1_1/" + snapshot
+# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+# tf.debugging.experimental.enable_dump_debug_info(logdir, tensor_debug_mode="FULL_HEALTH", circular_buffer_size=-1)
+
+with open("../params/params_har.txt") as f:
+    hyperparams = dict([re.sub('['+' ,\n'+']','',x.replace(' .', '')).split('=') for x in f][1:-1])
+hyperparams = dict([k, float(v)] for k, v in hyperparams.items())
+hyperparams['testSize'] = 0.500
+hyperparams['noUnits'] = 81
+hyperparams['timestep'] = 40
+print(hyperparams)
+
+=======
+>>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
 def seperateValues(data, noInput, noOutput, isMoore=True):
     x_data, y_data = None, None
     for i in range(data.shape[0]):
@@ -246,6 +272,12 @@ if __name__ == '__main__':
     noIn, noOut = 3, 6
     path = '../../Datasets/6_har/0_WISDM/WISDM_ar_v1.1/wisdm_script_and_data/wisdm_script_and_data/WISDM/testdata/' #fulla node1 path
     fileslist = [f for f in sorted(os.listdir(path)) if os.path.isfile(os.path.join(path, f))]
+<<<<<<< HEAD
+    # logdir = f"./logs/scalars/wisdm"
+    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+    # print(hyperparams)
+    print(tf.keras.backend.floatx())
+=======
     
     pyname = os.path.basename(sys.argv[0]).split('.')[0]
     result_dir = '/home/chau/workingdir/tf_implementations/pythons/new_neurons/predict_results'
@@ -261,6 +293,7 @@ if __name__ == '__main__':
     hyperparams['timestep'] = 40
     print(hyperparams)
     
+>>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
     for file_no in range(8):
         trainFile = f'train{file_no}.csv'
         valFile   = f'val{file_no}.csv'
@@ -289,6 +322,12 @@ if __name__ == '__main__':
                             shuffle=True,
                             use_multiprocessing=False,
                             # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+<<<<<<< HEAD
+                            # callbacks=[tensorboard_callback, LearningRateLoggingCallback()],
+                        )
+        y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
+        val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
+=======
                         )
         y_pred = model.predict(x_val, verbose=0, batch_size=int(hyperparams['batchSize']))
         val_performance = model.evaluate(x_val, y_val, batch_size=int(hyperparams['batchSize']), verbose=0)
@@ -306,5 +345,6 @@ if __name__ == '__main__':
         np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_predict.csv',y_pred_indexes, fmt = '%d', delimiter=",") 
         np.savetxt(f'{result_dir}/wisdm_{pyname}_{file_no}_target.csv',y_val_indexes, fmt = '%d', delimiter=",")
         
+>>>>>>> ebdff0bdd149d3b8529a63db62069157f2d8ddb4
         print(f"{valFile} val_performance = {val_performance}")
         print(f"{valFile} val accuracy = {round(customMetricfn_full(y_val, y_pred), 5)}")
