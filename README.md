@@ -20,4 +20,4 @@ The selected neuron is version 30th in the synthesized list for HAR using the Wi
 3. [pythons](https://github.com/AchillesProject/MasterThesis/tree/main/pythons) provides implementation of the neuron in TensorFlow framework as the Python files.
 4. [pareto](https://github.com/AchillesProject/MasterThesis/tree/main/pareto) provides the list of evolved neurons for WISDM datasets, which later is used for drawing the Pareto Frontier graph.
 5. [params](https://github.com/AchillesProject/MasterThesis/tree/main/params) provides the tuned hyperparameter for different datasets.
-6. [params](https://github.com/AchillesProject/MasterThesis/tree/main/params) provides the results of different trials before being cleaned up. [Can be discarded]
+6. [params](https://github.com/AchillesProject/MasterThesis/tree/main/results) provides the results of different trials before being cleaned up. [Can be discarded]
